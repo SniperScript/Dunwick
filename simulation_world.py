@@ -152,6 +152,7 @@ class SimCharacter:
         self.current_schedule_label = "Following afternoon routine"
         self.schedule_recalc_timer = random.uniform(0.5, 2.0)
         self.step_timer = 0.0
+        self.stuck_timer = 0.0
         self.arrested = False
 
     def init_relationships(self):
@@ -581,18 +582,32 @@ class SimulationWorld:
             dx = tx - char.x
             dy = ty - char.y
             d = math.hypot(dx, dy)
-            if d <= 10.0:
+            if d <= 14.0:
                 char.path_waypoints.pop(0)
+                char.stuck_timer = 0.0
                 if not char.path_waypoints:
                     char.vx = 0.0
                     char.vy = 0.0
             else:
-                spd = char.base_speed * 0.68
+                spd = char.base_speed * 0.72
                 char.vx = (dx / d) * spd
                 char.vy = (dy / d) * spd
+                old_x, old_y = char.x, char.y
                 char.x, char.y = self.grid_engine.move_with_sliding(
                     char.x, char.y, char.vx * dt, char.vy * dt, radius=10.0
                 )
+                # If barely moved while trying to walk, apply perpendicular corner glide or skip waypoint
+                if math.hypot(char.x - old_x, char.y - old_y) < spd * dt * 0.25:
+                    char.stuck_timer += dt
+                    # Try perpendicular tangent step to roll around any corner
+                    perp_x = -char.vy * dt * 0.85
+                    perp_y = char.vx * dt * 0.85
+                    char.x, char.y = self.grid_engine.move_with_sliding(char.x, char.y, perp_x, perp_y, radius=10.0)
+                    if char.stuck_timer > 0.45:
+                        char.path_waypoints.pop(0)
+                        char.stuck_timer = 0.0
+                else:
+                    char.stuck_timer = 0.0
         else:
             char.vx = 0.0
             char.vy = 0.0
