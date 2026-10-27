@@ -70,6 +70,8 @@ class MaplewoodRPGApp:
         fonts_dir = os.path.join(assets_dir, "fonts")
         font_bold_path = os.path.join(fonts_dir, "SourceSansPro-Bold.ttf")
         font_semi_path = os.path.join(fonts_dir, "SourceSansPro-Semibold.ttf")
+        gothic_bold_path = os.path.join(fonts_dir, "GothicSerif-Bold.ttf")
+        gothic_reg_path = os.path.join(fonts_dir, "GothicSerif-Regular.ttf")
 
         try:
             if os.path.exists(font_bold_path) and os.path.exists(font_semi_path):
@@ -89,7 +91,45 @@ class MaplewoodRPGApp:
             self.font_xl = pygame.font.SysFont("DejaVu Sans, Arial, sans-serif", 26, bold=True)
             self.font_title = pygame.font.SysFont("DejaVu Sans, Arial, sans-serif", 34, bold=True)
 
+        try:
+            if os.path.exists(gothic_bold_path) and os.path.exists(gothic_reg_path):
+                self.font_gothic_xs = pygame.font.Font(gothic_reg_path, 13)
+                self.font_gothic_sm = pygame.font.Font(gothic_reg_path, 15)
+                self.font_gothic_md = pygame.font.Font(gothic_bold_path, 18)
+                self.font_gothic_lg = pygame.font.Font(gothic_bold_path, 22)
+                self.font_gothic_xl = pygame.font.Font(gothic_bold_path, 26)
+                self.font_gothic_title = pygame.font.Font(gothic_bold_path, 34)
+            else:
+                self.font_gothic_xs = self.font_xs
+                self.font_gothic_sm = self.font_sm
+                self.font_gothic_md = self.font_md
+                self.font_gothic_lg = self.font_lg
+                self.font_gothic_xl = self.font_xl
+                self.font_gothic_title = self.font_title
+        except Exception:
+            self.font_gothic_xs = self.font_xs
+            self.font_gothic_sm = self.font_sm
+            self.font_gothic_md = self.font_md
+            self.font_gothic_lg = self.font_lg
+            self.font_gothic_xl = self.font_xl
+            self.font_gothic_title = self.font_title
+
         self._load_settings()
+
+        # Load Gothic Main Menu Backgrounds
+        self.menu_bgs: dict[str, pygame.Surface] = {}
+        assets_menu_dir = os.path.join(assets_dir, "menu")
+        for bg_key, bg_fname in [
+            ("DUNWICK_MARKET", "dunwick_market_gothic_night.png"),
+            ("BLOOD_MOON_ECLIPSE", "dunwick_menu_bg.png"),
+        ]:
+            bg_p = os.path.join(assets_menu_dir, bg_fname)
+            if os.path.exists(bg_p):
+                try:
+                    loaded = pygame.image.load(bg_p).convert()
+                    self.menu_bgs[bg_key] = pygame.transform.smoothscale(loaded, (SCREEN_WIDTH, SCREEN_HEIGHT))
+                except Exception as e:
+                    print(f"Failed to load menu bg {bg_fname}: {e}")
 
         self.llm_broker = CloudLLMBroker()
         self.world = SimulationWorld(self.llm_broker)
@@ -242,50 +282,70 @@ class MaplewoodRPGApp:
     def _draw_figma_card(
         self,
         rect: pygame.Rect,
-        bg_rgba: tuple[int, int, int, int] = (20, 22, 34, 240),
-        border_col: tuple[int, int, int] = (142, 114, 62),
-        radius: int = 16,
+        bg_rgba: tuple[int, int, int, int] = (14, 16, 24, 250),
+        border_col: tuple[int, int, int] = (74, 58, 48),
+        radius: int = 14,
         border_w: int = 2,
         shadow_offset: int = 6,
+        inner_border: bool = True,
+        corner_tabs: bool = True,
     ):
         if shadow_offset > 0:
-            sh_surf = pygame.Surface((rect.width + 8, rect.height + 8), pygame.SRCALPHA)
+            sh_surf = pygame.Surface((rect.width + 10, rect.height + 10), pygame.SRCALPHA)
             pygame.draw.rect(
-                sh_surf, (6, 8, 14, 125), (0, 0, rect.width + 8, rect.height + 8), border_radius=radius + 2
+                sh_surf, (4, 5, 8, 160), (0, 0, rect.width + 10, rect.height + 10), border_radius=radius + 2
             )
-            self.screen.blit(sh_surf, (rect.x - 4 + shadow_offset // 2, rect.y + shadow_offset))
+            self.screen.blit(sh_surf, (rect.x - 5 + shadow_offset // 2, rect.y + shadow_offset))
 
         card_surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
         pygame.draw.rect(card_surf, bg_rgba, (0, 0, rect.width, rect.height), border_radius=radius)
+        # Stone top-edge highlight
+        pygame.draw.line(card_surf, (48, 52, 68, 130), (8, 2), (rect.width - 9, 2), 1)
         self.screen.blit(card_surf, rect.topleft)
 
         if border_w > 0:
             pygame.draw.rect(self.screen, border_col, rect, border_w, border_radius=radius)
+            if inner_border and border_w >= 2:
+                inner_r = rect.inflate(-6, -6)
+                pygame.draw.rect(self.screen, (138, 28, 38), inner_r, 1, border_radius=max(2, radius - 3))
+
+        if corner_tabs:
+            tab_sz = 6
+            corners = [
+                (rect.left - 2, rect.top - 2),
+                (rect.right - tab_sz + 2, rect.top - 2),
+                (rect.left - 2, rect.bottom - tab_sz + 2),
+                (rect.right - tab_sz + 2, rect.bottom - tab_sz + 2),
+            ]
+            for cx, cy in corners:
+                pygame.draw.rect(self.screen, (218, 172, 78), (cx, cy, tab_sz, tab_sz))
+                pygame.draw.rect(self.screen, (34, 26, 20), (cx, cy, tab_sz, tab_sz), 1)
 
     def _draw_figma_button(
         self,
         rect: pygame.Rect,
         label: str,
         font: pygame.font.Font,
-        bg_col: tuple[int, int, int] = (36, 38, 56),
-        hover_col: tuple[int, int, int] = (56, 60, 86),
-        border_col: tuple[int, int, int] = (218, 172, 78),
+        bg_col: tuple[int, int, int] = (24, 26, 36),
+        hover_col: tuple[int, int, int] = (48, 24, 32),
+        border_col: tuple[int, int, int] = (142, 114, 62),
         text_col: tuple[int, int, int] = (245, 240, 228),
-        radius: int = 10,
+        radius: int = 8,
         align_left: bool = False,
     ):
         mx, my = pygame.mouse.get_pos()
         is_hover = rect.collidepoint(mx, my)
         fill = hover_col if is_hover else bg_col
-        pygame.draw.rect(self.screen, (10, 12, 18), rect.move(0, 3), border_radius=radius)
+        pygame.draw.rect(self.screen, (8, 10, 14), rect.move(0, 3), border_radius=radius)
         pygame.draw.rect(self.screen, fill, rect, border_radius=radius)
-        pygame.draw.rect(
-            self.screen,
-            (255, 220, 95) if is_hover else border_col,
-            rect,
-            2 if is_hover else 1,
-            border_radius=radius,
-        )
+        bdr_c = (218, 172, 78) if is_hover else border_col
+        pygame.draw.rect(self.screen, bdr_c, rect, 2 if is_hover else 1, border_radius=radius)
+
+        if is_hover:
+            tab_sz = 4
+            pygame.draw.rect(self.screen, (218, 172, 78), (rect.left - 1, rect.top - 1, tab_sz, tab_sz))
+            pygame.draw.rect(self.screen, (218, 172, 78), (rect.right - tab_sz + 1, rect.top - 1, tab_sz, tab_sz))
+
         # Strictly bound button text within its inner width
         max_tw = max(10, rect.width - 24)
         display_label = label
@@ -294,10 +354,94 @@ class MaplewoodRPGApp:
                 display_label = display_label[:-1]
             display_label = display_label + "..."
 
-        t_surf = font.render(display_label, True, text_col)
+        t_surf = font.render(display_label, True, (255, 248, 235) if is_hover else text_col)
         tx = rect.x + 14 if align_left else rect.centerx - t_surf.get_width() // 2
         ty = rect.centery - t_surf.get_height() // 2
         self.screen.blit(t_surf, (tx, ty))
+
+    def _draw_gothic_plaque(
+        self,
+        surface: pygame.Surface,
+        rect: pygame.Rect,
+        is_active: bool,
+        text: str,
+        font: pygame.font.Font,
+        hotkey_tag: str = "",
+    ):
+        if is_active:
+            # Active carved stone plaque with top bevel highlight
+            p_surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(p_surf, (16, 18, 26, 245), (0, 0, rect.width, rect.height), border_radius=6)
+            pygame.draw.line(p_surf, (48, 52, 68, 180), (4, 2), (rect.width - 5, 2), 1)
+            surface.blit(p_surf, rect.topleft)
+
+            # Double border
+            pygame.draw.rect(surface, (68, 56, 48), rect, 2, border_radius=6)
+            inner_r = rect.inflate(-6, -6)
+            pygame.draw.rect(surface, (132, 118, 102), inner_r, 1, border_radius=4)
+
+            # 4 Corner bracket tabs in antique gold
+            tab_sz = 5
+            corners = [
+                (rect.left - 2, rect.top - 2),
+                (rect.right - tab_sz + 2, rect.top - 2),
+                (rect.left - 2, rect.bottom - tab_sz + 2),
+                (rect.right - tab_sz + 2, rect.bottom - tab_sz + 2),
+            ]
+            for cx, cy in corners:
+                pygame.draw.rect(surface, (218, 172, 78), (cx, cy, tab_sz, tab_sz))
+                pygame.draw.rect(surface, (54, 42, 34), (cx, cy, tab_sz, tab_sz), 1)
+
+            # Left filigree thorn/vine curls (Image 1 style)
+            pygame.draw.lines(surface, (142, 126, 108), False, [
+                (rect.left, rect.top + 14),
+                (rect.left - 10, rect.top + 8),
+                (rect.left - 16, rect.top - 2),
+                (rect.left - 12, rect.top - 8),
+            ], 2)
+            pygame.draw.lines(surface, (142, 126, 108), False, [
+                (rect.left, rect.bottom - 14),
+                (rect.left - 10, rect.bottom - 8),
+                (rect.left - 16, rect.bottom + 2),
+                (rect.left - 12, rect.bottom + 8),
+            ], 2)
+            pygame.draw.circle(surface, (218, 172, 78), (rect.left - 12, rect.top - 8), 2)
+            pygame.draw.circle(surface, (218, 172, 78), (rect.left - 12, rect.bottom + 8), 2)
+
+            # Right circular medallion seal with cross (✕)
+            c_x, c_y = rect.right - 24, rect.centery
+            pygame.draw.circle(surface, (14, 16, 22), (c_x, c_y), 11)
+            pygame.draw.circle(surface, (132, 118, 102), (c_x, c_y), 11, 1)
+            pygame.draw.line(surface, (218, 172, 78), (c_x - 4, c_y - 4), (c_x + 4, c_y + 4), 2)
+            pygame.draw.line(surface, (218, 172, 78), (c_x + 4, c_y - 4), (c_x - 4, c_y + 4), 2)
+
+            # Active text in ivory
+            t_fg = font.render(text, True, (252, 248, 240))
+            surface.blit(t_fg, (rect.left + 26, rect.centery - t_fg.get_height() // 2))
+
+            if hotkey_tag:
+                hk_surf = self.font_xs.render(hotkey_tag, True, (218, 172, 78))
+                surface.blit(hk_surf, (rect.right - 62, rect.centery - hk_surf.get_height() // 2))
+        else:
+            # Unselected clean gothic text
+            t_fg = font.render(text, True, (172, 166, 156))
+            surface.blit(t_fg, (rect.left + 26, rect.centery - t_fg.get_height() // 2))
+
+            if hotkey_tag:
+                hk_surf = self.font_xs.render(hotkey_tag, True, (120, 114, 106))
+                surface.blit(hk_surf, (rect.right - 62, rect.centery - hk_surf.get_height() // 2))
+
+            # Subtle horizontal divider line beneath
+            div_y = rect.bottom + 4
+            pygame.draw.line(surface, (54, 46, 42), (rect.left + 14, div_y), (rect.right - 14, div_y), 1)
+            pygame.draw.circle(surface, (98, 86, 78), (rect.centerx, div_y), 1)
+
+    def _draw_star_emblem(self, surface: pygame.Surface, cx: int, cy: int):
+        pygame.draw.circle(surface, (142, 28, 38, 110), (cx, cy), 14, 1)
+        pygame.draw.line(surface, (180, 140, 70), (cx - 10, cy), (cx + 10, cy), 1)
+        pygame.draw.line(surface, (180, 140, 70), (cx, cy - 10), (cx, cy + 10), 1)
+        pygame.draw.line(surface, (180, 140, 70), (cx - 6, cy - 6), (cx + 6, cy + 6), 1)
+        pygame.draw.line(surface, (180, 140, 70), (cx + 6, cy - 6), (cx - 6, cy + 6), 1)
 
     def _render_wrapped_text(
         self,
@@ -539,10 +683,11 @@ class MaplewoodRPGApp:
             return
 
         if self.active_modal == "MAIN_MENU":
+            num_items = len(self._get_main_menu_items())
             if event.key in (pygame.K_UP, pygame.K_w):
-                self.menu_selected_idx = (self.menu_selected_idx - 1) % 5
+                self.menu_selected_idx = (self.menu_selected_idx - 1) % num_items
             elif event.key in (pygame.K_DOWN, pygame.K_s):
-                self.menu_selected_idx = (self.menu_selected_idx + 1) % 5
+                self.menu_selected_idx = (self.menu_selected_idx + 1) % num_items
             elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 self._activate_main_menu_choice(self.menu_selected_idx)
             elif event.key == pygame.K_1:
@@ -555,6 +700,13 @@ class MaplewoodRPGApp:
                 self._activate_main_menu_choice(3)
             elif event.key == pygame.K_5:
                 self._activate_main_menu_choice(4)
+            elif event.key == pygame.K_6:
+                self._activate_main_menu_choice(5)
+            elif event.key == pygame.K_b:
+                curr = self.settings.get("menu_background", "DUNWICK_MARKET")
+                self.settings["menu_background"] = "BLOOD_MOON_ECLIPSE" if curr == "DUNWICK_MARKET" else "DUNWICK_MARKET"
+                self._save_settings()
+                self.show_toast(f"Menu Background: {self.settings['menu_background']}", duration=2.5)
             elif event.key == pygame.K_ESCAPE and self.in_game_paused:
                 self.active_modal = None
             return
@@ -731,9 +883,11 @@ class MaplewoodRPGApp:
         mx, my = pos
 
         if self.active_modal == "MAIN_MENU":
-            for idx in range(5):
-                by = 176 + idx * 92
-                if pygame.Rect(76, by, 448, 76).collidepoint(mx, my):
+            items = self._get_main_menu_items()
+            for idx in range(len(items)):
+                iy = 210 + idx * 58
+                r = pygame.Rect(110, iy, 340, 50)
+                if r.collidepoint(mx, my):
                     self.menu_selected_idx = idx
                     self._activate_main_menu_choice(idx)
                     return
@@ -1328,7 +1482,7 @@ class MaplewoodRPGApp:
         self.screen.blit(trust_tag, (p_rect.centerx - trust_tag.get_width() // 2, 736))
 
         x_text = 245
-        name_hdr = self.font_lg.render(f"{npc.name}  —  {npc.role}", True, COLORS["gold"])
+        name_hdr = self.font_gothic_lg.render(f"{npc.name}  —  {npc.role}", True, COLORS["gold"])
         self.screen.blit(name_hdr, (x_text, 548))
 
         sched_hdr = self.font_xs.render(
@@ -1409,7 +1563,7 @@ class MaplewoodRPGApp:
     # =========================================================================
     def _activate_main_menu_choice(self, idx: int):
         if idx == 0:
-            # START NEW CAMPAIGN
+            # START NEW CAMPAIGN / NEW GAME
             self.active_modal = "FAMILY_SELECT"
         elif idx == 1:
             # CONTINUE TIMELINE
@@ -1421,242 +1575,99 @@ class MaplewoodRPGApp:
                 duration=5.0,
             )
         elif idx == 2:
-            # FORESIGHT JOURNAL & CODEX
-            self.active_modal = "NOTEBOOK"
+            # THE THREE FATES (Scenario Selection)
+            self.active_modal = "FAMILY_SELECT"
         elif idx == 3:
-            # SETTINGS & CONFIGURATION
+            # OPTIONS & SETTINGS
             self.active_modal = "SETTINGS"
             self.settings_tab_idx = 0
         elif idx == 4:
+            # FORESIGHT CODEX & JOURNAL
+            self.active_modal = "NOTEBOOK"
+        elif idx == 5:
             # QUIT TO DESKTOP
             pygame.event.post(pygame.event.Event(pygame.QUIT))
 
+    def _get_main_menu_items(self) -> list[tuple[str, str, str]]:
+        return [
+            ("New Game", "Initiate a new 7-Day Time Loop • Choose Scenario & Family Hero", "[1]"),
+            ("Continue", f"Resume {self.world.get_day_name()} (Loop #{self.world.loop_id})", "[2]"),
+            ("The Three Fates", "The Doomsday Clock • The Grim Decree • The Thread of Fate", "[3]"),
+            ("Options", "Graphics, Audio, Gameplay, Controls & AI Broker", "[4]"),
+            ("Foresight Codex", "Review 7-Day Butterfly Chain, Death Log & Clues", "[5]"),
+            ("Quit Game", "Preserve Timeline Progress & Exit to Desktop", "[ESC]"),
+        ]
+
     def _render_main_menu(self):
-        # 1. Dark Bloodborne Background & Vignette
-        self.screen.fill((10, 11, 15))
+        # 1. Background Surface (Dunwick Market Square or Blood Moon Eclipse)
+        active_bg_key = self.settings.get("menu_background", "DUNWICK_MARKET")
+        bg_surf = self.menu_bgs.get(active_bg_key) or self.menu_bgs.get("BLOOD_MOON_ECLIPSE")
+        if bg_surf:
+            self.screen.blit(bg_surf, (0, 0))
+        else:
+            self.screen.fill((10, 11, 15))
+
+        # 2. Left Atmospheric Shadow Gradient (Guarantees menu text legibility)
+        shadow = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        for x in range(int(SCREEN_WIDTH * 0.46)):
+            factor = x / (SCREEN_WIDTH * 0.46)
+            alpha = int(235 * (1.0 - factor * factor))
+            pygame.draw.line(shadow, (8, 9, 14, alpha), (x, 0), (x, SCREEN_HEIGHT))
+        self.screen.blit(shadow, (0, 0))
+
+        # 3. Rising Crimson Ember Particles & Radial Dark Vignette
         self._render_menu_embers(self.screen)
         self._render_bloodborne_vignette(self.screen)
 
-        # 2. Outer Gothic Border Frame
-        outer_rect = pygame.Rect(40, 30, SCREEN_WIDTH - 80, SCREEN_HEIGHT - 60)
-        pygame.draw.rect(self.screen, (16, 18, 26), outer_rect, border_radius=18)
-        pygame.draw.rect(self.screen, (74, 58, 48), outer_rect, 2, border_radius=18)
-        pygame.draw.rect(self.screen, (142, 28, 38), outer_rect.inflate(-8, -8), 1, border_radius=14)
+        # 4. Flanking Gothic Star Watermarks on Screen Borders (Image 1 style)
+        self._draw_star_emblem(self.screen, 36, SCREEN_HEIGHT // 2)
+        self._draw_star_emblem(self.screen, SCREEN_WIDTH - 36, SCREEN_HEIGHT // 2)
 
-        # 3. Header Branding (Left)
-        hx, hy = 76, 56
-        t_shadow = self.font_title.render("CHRONICLES OF DUNWICK", True, (142, 28, 38))
-        t_main = self.font_title.render("CHRONICLES OF DUNWICK", True, (218, 172, 78))
-        self.screen.blit(t_shadow, (hx + 2, hy + 2))
-        self.screen.blit(t_main, (hx, hy))
+        # 5. Top Branding Header (Gothic Serif)
+        hx, hy = 110, 68
+        t_sh = self.font_gothic_title.render("CHRONICLES OF DUNWICK", True, (138, 26, 36))
+        t_fg = self.font_gothic_title.render("CHRONICLES OF DUNWICK", True, (218, 172, 78))
+        self.screen.blit(t_sh, (hx + 2, hy + 2))
+        self.screen.blit(t_fg, (hx, hy))
 
-        sub = self.font_sm.render("DEFYING FATE  •  ANNO DOMINI 1924", True, (208, 172, 98))
-        self.screen.blit(sub, (hx, hy + 46))
+        sub = self.font_gothic_sm.render("DEFYING FATE  •  ANNO DOMINI 1924", True, (185, 175, 160))
+        self.screen.blit(sub, (hx, hy + 44))
 
-        tag = self.font_xs.render("[ SOLE-KNOWER BUTTERFLY TIMELINE MATRIX // REPO-SPEC ]", True, (138, 172, 185))
-        self.screen.blit(tag, (hx, hy + 68))
+        # Gothic ornamental divider line
+        pygame.draw.line(self.screen, (138, 26, 36), (hx, hy + 72), (hx + 380, hy + 72), 2)
+        pygame.draw.polygon(self.screen, (218, 172, 78), [(hx + 190, hy + 67), (hx + 195, hy + 72), (hx + 190, hy + 77), (hx + 185, hy + 72)])
 
-        # Bloodborne filigree divider
-        pygame.draw.line(self.screen, (142, 28, 38), (hx, hy + 94), (524, hy + 94), 2)
-        pygame.draw.circle(self.screen, (218, 172, 78), (hx, hy + 94), 3)
-        pygame.draw.circle(self.screen, (218, 172, 78), (524, hy + 94), 3)
+        # 6. Left Connecting Spine Line (Image 1 style)
+        spine_x = 94
+        pygame.draw.line(self.screen, (72, 60, 52), (spine_x, 210), (spine_x, 570), 2)
 
-        # 4. R.E.P.O.-Style Vertical Selection Menu
+        # 7. Menu Options
+        menu_items = self._get_main_menu_items()
         mx, my = pygame.mouse.get_pos()
-        menu_items = [
-            ("[1]", "START NEW CAMPAIGN", "Select 1 of 3 Fate Scenarios & Family Hero"),
-            ("[2]", "CONTINUE TIMELINE", f"Resume {self.world.get_day_name()} (Loop #{self.world.loop_id})"),
-            ("[3]", "FORESIGHT CODEX & JOURNAL", "Review 7-Day Butterfly Chain & Clues"),
-            ("[4]", "SETTINGS & CONFIGURATION", "Display, Audio, Gameplay & Keymap Matrix"),
-            ("[5]", "QUIT TO DESKTOP", "Preserve Timeline Progress & Exit"),
-        ]
 
-        for idx, (hotkey, label, desc) in enumerate(menu_items):
-            by = 176 + idx * 92
-            btn_rect = pygame.Rect(76, by, 448, 76)
-            if btn_rect.collidepoint(mx, my):
+        for idx, (label, desc, hk) in enumerate(menu_items):
+            iy = 210 + idx * 58
+            r = pygame.Rect(110, iy, 340, 50)
+            if r.collidepoint(mx, my):
                 self.menu_selected_idx = idx
 
-            is_active = (idx == self.menu_selected_idx)
-            bg = (48, 16, 22) if is_active else (20, 22, 32)
-            bdr = (195, 38, 48) if is_active else (74, 68, 62)
+            is_act = (idx == self.menu_selected_idx)
+            # Connector from spine to plaque
+            pygame.draw.line(self.screen, (72, 60, 52), (spine_x, r.centery), (r.left - 4, r.centery), 1)
+            self._draw_gothic_plaque(self.screen, r, is_act, label, self.font_gothic_md if is_act else self.font_gothic_sm, hotkey_tag=hk)
 
-            pygame.draw.rect(self.screen, (6, 8, 12), btn_rect.move(0, 3), border_radius=10)
-            pygame.draw.rect(self.screen, bg, btn_rect, border_radius=10)
-            pygame.draw.rect(self.screen, bdr, btn_rect, 2 if is_active else 1, border_radius=10)
+        # 8. Active Item Subtitle Ribbon (Bottom Left, Cinematic)
+        sel_idx = max(0, min(len(menu_items) - 1, self.menu_selected_idx))
+        active_label, active_desc, _ = menu_items[sel_idx]
+        rib_rect = pygame.Rect(110, 580, 480, 56)
+        rib_surf = pygame.Surface((rib_rect.width, rib_rect.height), pygame.SRCALPHA)
+        pygame.draw.rect(rib_surf, (12, 14, 20, 215), (0, 0, rib_rect.width, rib_rect.height), border_radius=8)
+        self.screen.blit(rib_surf, rib_rect.topleft)
+        pygame.draw.rect(self.screen, (74, 58, 48), rib_rect, 1, border_radius=8)
 
-            if is_active:
-                pygame.draw.rect(self.screen, (195, 38, 48), (btn_rect.x, btn_rect.y, 6, btn_rect.height), border_top_left_radius=10, border_bottom_left_radius=10)
-
-            hk_col = (218, 172, 78) if is_active else (160, 150, 138)
-            lbl_col = (255, 245, 225) if is_active else (226, 220, 206)
-            desc_col = (215, 175, 175) if is_active else (128, 124, 120)
-
-            self.screen.blit(self.font_md.render(hotkey, True, hk_col), (btn_rect.x + 18, btn_rect.y + 16))
-            self.screen.blit(self.font_md.render(label, True, lbl_col), (btn_rect.x + 60, btn_rect.y + 16))
-            self.screen.blit(self.font_xs.render(desc, True, desc_col), (btn_rect.x + 60, btn_rect.y + 44))
-
-        # 5. Right Contextual Preview Card (R.E.P.O. style)
-        prev_rect = pygame.Rect(554, 56, 730, 710)
-        pygame.draw.rect(self.screen, (6, 8, 12), prev_rect.move(0, 4), border_radius=14)
-        pygame.draw.rect(self.screen, (18, 22, 32), prev_rect, border_radius=14)
-        pygame.draw.rect(self.screen, (142, 28, 38), prev_rect, 2, border_radius=14)
-
-        sel = self.menu_selected_idx
-        px0, py0 = prev_rect.x + 32, prev_rect.y + 28
-        pw = prev_rect.width - 64
-
-        if sel == 0:
-            # START NEW CAMPAIGN PREVIEW
-            self.screen.blit(self.font_lg.render("CAMPAIGN INITIATION // THE THREE FATES", True, COLORS["gold"]), (px0, py0))
-            py0 += 32
-            self.screen.blit(self.font_xs.render("3 Playable Scenarios  •  4 Ashford-Mercer Family Members  •  7-Day Butterfly Web", True, COLORS["cyan"]), (px0, py0))
-            py0 += 32
-
-            scen_cards = [
-                ("SCENARIO I: THE LOOMING RUPTURE", "World Demise", "The Imperial Boiler & Ley-line will rupture at the 7th Bell.", (218, 172, 78)),
-                ("SCENARIO II: THE GRIM DECREE", "Self Death", "Fate has marked YOU for death across 7 mutating daily hazards.", (238, 82, 82)),
-                ("SCENARIO III: THE THREADS OF FATE", "Loved One Protected", "Shield your friend/relative from assassination, crash, poison & doom.", (98, 228, 255)),
-            ]
-            for s_title, s_sub, s_desc, s_col in scen_cards:
-                c_rect = pygame.Rect(px0, py0, pw, 78)
-                pygame.draw.rect(self.screen, (26, 28, 40), c_rect, border_radius=8)
-                pygame.draw.rect(self.screen, s_col, c_rect, 1, border_radius=8)
-                self.screen.blit(self.font_sm.render(s_title, True, s_col), (px0 + 14, py0 + 10))
-                self.screen.blit(self.font_xs.render(f"Category: {s_sub}", True, COLORS["white"]), (px0 + 14, py0 + 32))
-                self.screen.blit(self.font_xs.render(s_desc, True, (168, 162, 154)), (px0 + 14, py0 + 52))
-                py0 += 90
-
-            py0 += 10
-            self.screen.blit(self.font_sm.render("THE SOLE-KNOWER AXIOM:", True, COLORS["gold"]), (px0, py0))
-            py0 += 24
-            rule_str = (
-                "Only the character you select retains consciousness of previous loops. "
-                "The other three family members live in total ignorance. "
-                "Observe human routines, foil today's hazard, and withstand the Butterfly Effect across all 7 Days!"
-            )
-            self._render_wrapped_text(rule_str, self.font_xs, (200, 195, 185), px0, py0, max_width=pw, line_spacing=18)
-
-        elif sel == 1:
-            # CONTINUE TIMELINE PREVIEW
-            self.screen.blit(self.font_lg.render("ACTIVE TIMELINE // RESUME MISSION", True, COLORS["gold"]), (px0, py0))
-            py0 += 34
-
-            p = self.world.get_player()
-            port_rect = pygame.Rect(px0, py0, 140, 140)
-            draw_character_portrait(self.screen, port_rect, p.spec, anim_phase=0.0)
-
-            rx = px0 + 160
-            self.screen.blit(self.font_md.render(p.name, True, COLORS["white"]), (rx, py0 + 8))
-            self.screen.blit(self.font_xs.render(f"Role: {p.role}", True, COLORS["cyan"]), (rx, py0 + 34))
-            self.screen.blit(self.font_xs.render(f"Sole-Knower Trait: {p.perk}", True, COLORS["green"]), (rx, py0 + 56))
-
-            status_col = COLORS["green"] if self.world.zone_state.get("day_threat_foiled") else COLORS["gold"]
-            status_txt = "FOILED ✓ (Press [G] for Next Day)" if self.world.zone_state.get("day_threat_foiled") else "ACTIVE THREAT HAZARD"
-            self.screen.blit(self.font_xs.render(f"Threat Status: {status_txt}", True, status_col), (rx, py0 + 82))
-            py0 += 160
-
-            # Telemetry box
-            t_box = pygame.Rect(px0, py0, pw, 180)
-            pygame.draw.rect(self.screen, (24, 28, 42), t_box, border_radius=10)
-            pygame.draw.rect(self.screen, (74, 68, 62), t_box, 1, border_radius=10)
-
-            t_y = py0 + 16
-            t_items = [
-                ("Active Loop Counter", f"Loop #{self.world.loop_id} (Consciousness Intact)"),
-                ("Temporal Day & Time", f"{self.world.get_day_name()} (Day {self.world.current_day}/7) • {self.world.get_clock_string()}"),
-                ("Sole-Knower Protection Target", f"{self.world.get_protected_target_label()}"),
-                ("Composure & Credibility", f"{self.world.credibility}% (Avoid frantic raving without proof)"),
-                ("Current Crisis Motive", f"{self.world.scenario.get('title', 'Unknown Threat')} — {self.world.scenario.get('motive', '')[:54]}..."),
-            ]
-            for lbl, val in t_items:
-                self.screen.blit(self.font_xs.render(f"•  {lbl}:", True, (168, 160, 150)), (px0 + 16, t_y))
-                self.screen.blit(self.font_xs.render(val, True, COLORS["white"]), (px0 + 240, t_y))
-                t_y += 30
-
-            py0 += 200
-            prompt_str = "Press [2] or [SPACE] or Click to step directly into the streets of 1924 Dunwick."
-            self.screen.blit(self.font_sm.render(prompt_str, True, COLORS["cyan"]), (px0, py0))
-
-        elif sel == 2:
-            # FORESIGHT CODEX & JOURNAL PREVIEW
-            self.screen.blit(self.font_lg.render("FORESIGHT CODEX // 7-DAY BUTTERFLY WEB", True, COLORS["gold"]), (px0, py0))
-            py0 += 32
-            self.screen.blit(self.font_xs.render("Every intervention alters fate. Survived days mutate into new hazards.", True, (168, 160, 150)), (px0, py0))
-            py0 += 30
-
-            hist_by_day = {h["day"]: h for h in self.world.butterfly_history}
-            for d_i in range(1, 8):
-                d_nm = WEEK_DAYS[d_i - 1]
-                if d_i in hist_by_day:
-                    txt = f"[SURVIVED] Day {d_i} ({d_nm}): {hist_by_day[d_i]['threat']} -> Neutralized via [{hist_by_day[d_i]['method']}]"
-                    col = COLORS["green"]
-                elif d_i == self.world.current_day:
-                    txt = f"[ACTIVE NOW] Day {d_i} ({d_nm}): {self.world.scenario.get('title')} (Requires Intervention!)"
-                    col = COLORS["gold"]
-                else:
-                    txt = f"[LOCKED FUTURE] Day {d_i} ({d_nm}): Unwritten Butterfly Mutation"
-                    col = COLORS["text_muted"]
-                self.screen.blit(self.font_xs.render(txt, True, col), (px0 + 8, py0))
-                py0 += 24
-
-            py0 += 16
-            self.screen.blit(self.font_sm.render(f"Sole-Knower Death Log ({len(self.world.death_journal)} past loops recorded):", True, COLORS["red"]), (px0, py0))
-            py0 += 26
-            for dj in self.world.death_journal[-3:]:
-                txt = f"• Loop #{dj['loop']}: Struck down on {dj['day_name']} via [{dj['hazard']}]"
-                self.screen.blit(self.font_xs.render(txt, True, (245, 175, 175)), (px0 + 12, py0))
-                py0 += 22
-
-            py0 += 16
-            self.screen.blit(self.font_xs.render("Press [3] or [N] or Click to open the full interactive journal.", True, COLORS["cyan"]), (px0, py0))
-
-        elif sel == 3:
-            # SETTINGS & SYSTEM CONFIG PREVIEW
-            self.screen.blit(self.font_lg.render("R.E.P.O. SYSTEM CONFIGURATION MATRIX", True, COLORS["gold"]), (px0, py0))
-            py0 += 32
-
-            cfg_cards = [
-                ("GRAPHICS DISPLAY", f"Mode: {self.settings.get('display_mode', 'FULLSCREEN')}  •  Atmospheric Embers: {'ON' if self.settings.get('atmospheric_particles', True) else 'OFF'}  •  Bloodborne Dark Vignette"),
-                ("AUDIO TELEMETRY", f"Master: {self.settings.get('master_volume', 80)}%  •  SFX: {self.settings.get('sfx_volume', 75)}%  •  Clocktower Bells: ON"),
-                ("GAMEPLAY MECHANICS", f"Dialogue Speed: {self.settings.get('typewriter_speed', 'NORMAL')}  •  Camera: {self.settings.get('camera_smoothing', 'SMOOTH')}  •  Traffic: LETHAL COLLISIONS"),
-                ("CONTROL BINDINGS", "WASD / Arrows (2.5D Walk)  •  E (Interact)  •  F11 (Fullscreen)  •  ESC (Pause / Menu)"),
-                ("AI BROKER STATUS", f"Provider: {self.settings.get('ai_provider', 'gemini').upper()}  •  Vector Ingestion: ACTIVE  •  Offline Fallback: READY"),
-            ]
-            for c_title, c_desc in cfg_cards:
-                c_rect = pygame.Rect(px0, py0, pw, 72)
-                pygame.draw.rect(self.screen, (24, 28, 40), c_rect, border_radius=8)
-                pygame.draw.rect(self.screen, (74, 68, 62), c_rect, 1, border_radius=8)
-                self.screen.blit(self.font_sm.render(c_title, True, COLORS["gold"]), (px0 + 14, py0 + 10))
-                self.screen.blit(self.font_xs.render(c_desc, True, (210, 205, 195)), (px0 + 14, py0 + 36))
-                py0 += 84
-
-            py0 += 12
-            self.screen.blit(self.font_xs.render("Press [4] or Click to enter the interactive tabbed settings schema.", True, COLORS["cyan"]), (px0, py0))
-
-        elif sel == 4:
-            # QUIT GAME PREVIEW
-            self.screen.blit(self.font_lg.render("TERMINATE GAME SESSION", True, COLORS["red"]), (px0, py0))
-            py0 += 34
-            msg = (
-                "Safely exit Chronicles of Dunwick and return to the desktop.\n\n"
-                "Your active timeline parameters, loop recollections, and discovered "
-                "behavioral clues are securely persisted in memory."
-            )
-            for line in msg.split("\n"):
-                if line:
-                    self.screen.blit(self.font_sm.render(line, True, COLORS["white"]), (px0, py0))
-                py0 += 26
-
-            py0 += 30
-            self.screen.blit(self.font_sm.render("Press [5] or Click to quit to desktop.", True, COLORS["red"]), (px0, py0))
-
-        # 6. Bottom Status Strip
-        bot_rect = pygame.Rect(76, 750, 448, 32)
-        pygame.draw.rect(self.screen, (16, 18, 26), bot_rect, border_radius=8)
-        pygame.draw.rect(self.screen, (74, 58, 48), bot_rect, 1, border_radius=8)
-        prompt_txt = "[1-5] Quick Select  •  [F11] Fullscreen  •  [ESC] Exit"
-        self.screen.blit(self.font_xs.render(prompt_txt, True, (168, 160, 148)), (bot_rect.x + 18, bot_rect.y + 7))
+        self.screen.blit(self.font_gothic_sm.render(active_desc, True, (218, 172, 78)), (rib_rect.x + 16, rib_rect.y + 9))
+        prompt_txt = "[ENTER] or Click to Select  •  [B] Toggle Background  •  [F11] Fullscreen"
+        self.screen.blit(self.font_xs.render(prompt_txt, True, (168, 160, 150)), (rib_rect.x + 16, rib_rect.y + 32))
 
     def _render_settings_row(self, x: int, y: int, width: int, title: str, description: str, options: list[tuple[str, bool]]):
         self.screen.blit(self.font_md.render(title, True, (218, 172, 78)), (x, y + 2))
@@ -1688,14 +1699,14 @@ class MaplewoodRPGApp:
         self._render_bloodborne_vignette(self.screen)
 
         panel = pygame.Rect(80, 40, SCREEN_WIDTH - 160, SCREEN_HEIGHT - 80)
-        self._draw_figma_card(panel, bg_rgba=(16, 18, 26, 252), border_col=(142, 28, 38), radius=18, border_w=2, shadow_offset=8)
+        self._draw_figma_card(panel, bg_rgba=(14, 16, 24, 252), border_col=(142, 28, 38), radius=16, border_w=2, shadow_offset=8)
 
-        # Header
-        hdr = self.font_xl.render("SYSTEM CONFIGURATION  •  R.E.P.O. SPECIFICATION MATRIX", True, (218, 172, 78))
-        self.screen.blit(hdr, (panel.x + 36, panel.y + 24))
+        # Header in Gothic Serif
+        hdr = self.font_gothic_xl.render("SYSTEM CONFIGURATION  •  R.E.P.O. SPECIFICATION MATRIX", True, (218, 172, 78))
+        self.screen.blit(hdr, (panel.x + 36, panel.y + 22))
 
-        sub = self.font_xs.render("Bloodborne Dark Aesthetic  •  Dunwick 1924 Clockwork Engine  •  Defying Fate", True, (160, 150, 138))
-        self.screen.blit(sub, (panel.x + 36, panel.y + 58))
+        sub = self.font_gothic_xs.render("Bloodborne Dark Aesthetic  •  Dunwick 1924 Clockwork Engine  •  Defying Fate", True, (160, 150, 138))
+        self.screen.blit(sub, (panel.x + 36, panel.y + 56))
 
         # 5 Tabs: GRAPHICS, AUDIO, GAMEPLAY, CONTROLS, AI BROKER
         tabs = ["GRAPHICS", "AUDIO", "GAMEPLAY", "CONTROLS", "AI BROKER"]
@@ -1703,28 +1714,20 @@ class MaplewoodRPGApp:
 
         for t_i, t_name in enumerate(tabs):
             tx = panel.x + 36 + t_i * 220
-            ty = panel.y + 88
+            ty = panel.y + 86
             t_rect = pygame.Rect(tx, ty, 205, 42)
             is_act = (t_i == self.settings_tab_idx)
-            is_hov = t_rect.collidepoint(mx, my)
+            if t_rect.collidepoint(mx, my) and pygame.mouse.get_pressed()[0]:
+                self.settings_tab_idx = t_i
 
-            t_bg = (48, 16, 22) if is_act else ((32, 22, 28) if is_hov else (24, 26, 36))
-            t_bdr = (195, 38, 48) if is_act else ((142, 68, 62) if is_hov else (74, 68, 62))
-
-            pygame.draw.rect(self.screen, t_bg, t_rect, border_radius=8)
-            pygame.draw.rect(self.screen, t_bdr, t_rect, 2 if is_act else 1, border_radius=8)
-
-            t_col = (255, 240, 210) if is_act else ((220, 210, 195) if is_hov else (160, 154, 142))
-            t_surf = self.font_sm.render(f"[{t_i + 1}]  {t_name}", True, t_col)
-            self.screen.blit(t_surf, (t_rect.centerx - t_surf.get_width() // 2, t_rect.centery - t_surf.get_height() // 2))
+            self._draw_gothic_plaque(self.screen, t_rect, is_act, f"[{t_i + 1}] {t_name}", self.font_gothic_sm)
 
         # Content Box
-        c_box = pygame.Rect(panel.x + 36, panel.y + 144, panel.width - 72, panel.height - 224)
-        pygame.draw.rect(self.screen, (22, 24, 34), c_box, border_radius=12)
-        pygame.draw.rect(self.screen, (64, 54, 48), c_box, 1, border_radius=12)
+        c_box = pygame.Rect(panel.x + 36, panel.y + 140, panel.width - 72, panel.height - 216)
+        self._draw_figma_card(c_box, bg_rgba=(18, 20, 30, 248), border_col=(68, 56, 48), radius=12, border_w=1, shadow_offset=4)
 
         cx0 = c_box.x + 36
-        cy0 = c_box.y + 24
+        cy0 = c_box.y + 20
         cw = c_box.width - 72
 
         # Draw content by tab
@@ -1734,19 +1737,23 @@ class MaplewoodRPGApp:
             self._render_settings_row(cx0, cy0, cw, "DISPLAY MODE", "Select fullscreen display or windowed presentation.",
                                       [("FULLSCREEN (SCALED)", self.settings.get("display_mode") == "FULLSCREEN"),
                                        ("WINDOWED (1360x860)", self.settings.get("display_mode") == "WINDOWED")])
-            cy0 += 88
+            cy0 += 74
+            self._render_settings_row(cx0, cy0, cw, "MENU BACKGROUND THEME", "Tudor Borough market square pixel-art or Blood Moon Eclipse.",
+                                      [("DUNWICK MARKET", self.settings.get("menu_background", "DUNWICK_MARKET") == "DUNWICK_MARKET"),
+                                       ("BLOOD MOON ECLIPSE", self.settings.get("menu_background") == "BLOOD_MOON_ECLIPSE")])
+            cy0 += 74
             self._render_settings_row(cx0, cy0, cw, "ATMOSPHERIC EMBERS & SMOKE", "Simulate drifting coal embers and steam fog.",
                                       [("ENABLED", self.settings.get("atmospheric_particles", True)),
                                        ("DISABLED", not self.settings.get("atmospheric_particles", True))])
-            cy0 += 88
-            self._render_settings_row(cx0, cy0, cw, "DARKNESS VIGNETTE DEPTH", "Bloodborne-style radial corner darkness shading.",
-                                      [("BLOODBORNE DEEP DARK", self.settings.get("darkness_vignette") == "BLOODBORNE_DARK"),
-                                       ("STANDARD DARK", self.settings.get("darkness_vignette") != "BLOODBORNE_DARK")])
-            cy0 += 88
-            self._render_settings_row(cx0, cy0, cw, "TARGET FRAMERATE CAP", "Lock render cycle frequency.",
-                                      [("60 FPS", self.settings.get("target_fps") == 60),
+            cy0 += 74
+            self._render_settings_row(cx0, cy0, cw, "DARKNESS VIGNETTE", "Radial gothic darkness around overworld view.",
+                                      [("BLOODBORNE DARK", self.settings.get("darkness_vignette", "BLOODBORNE_DARK") == "BLOODBORNE_DARK"),
+                                       ("STANDARD (SOFT)", self.settings.get("darkness_vignette") == "STANDARD")])
+            cy0 += 74
+            self._render_settings_row(cx0, cy0, cw, "TARGET FRAMERATE", "Framerate governor (60 FPS standard).",
+                                      [("60 FPS", self.settings.get("target_fps", 60) == 60),
                                        ("120 FPS", self.settings.get("target_fps") == 120),
-                                       ("UNLIMITED", self.settings.get("target_fps") == 0)])
+                                       ("UNCAPPED", self.settings.get("target_fps") == 0)])
 
         elif tab == 1:
             # AUDIO TAB
@@ -1874,7 +1881,15 @@ class MaplewoodRPGApp:
                     pygame.display.toggle_fullscreen()
                 self._save_settings()
 
-            r1_y = cy0 + 88
+            r_bg_y = cy0 + 74
+            if pygame.Rect(cx0 + 440, r_bg_y + 8, 180, 36).collidepoint(mx, my):
+                self.settings["menu_background"] = "DUNWICK_MARKET"
+                self._save_settings()
+            elif pygame.Rect(cx0 + 440 + 194, r_bg_y + 8, 200, 36).collidepoint(mx, my):
+                self.settings["menu_background"] = "BLOOD_MOON_ECLIPSE"
+                self._save_settings()
+
+            r1_y = cy0 + 148
             if pygame.Rect(cx0 + 440, r1_y + 8, 140, 36).collidepoint(mx, my):
                 self.settings["atmospheric_particles"] = True
                 self._save_settings()
@@ -1882,7 +1897,7 @@ class MaplewoodRPGApp:
                 self.settings["atmospheric_particles"] = False
                 self._save_settings()
 
-            r2_y = cy0 + 176
+            r2_y = cy0 + 222
             if pygame.Rect(cx0 + 440, r2_y + 8, 220, 36).collidepoint(mx, my):
                 self.settings["darkness_vignette"] = "BLOODBORNE_DARK"
                 self._cached_vignette = None
@@ -1892,7 +1907,7 @@ class MaplewoodRPGApp:
                 self._cached_vignette = None
                 self._save_settings()
 
-            r3_y = cy0 + 264
+            r3_y = cy0 + 296
             if pygame.Rect(cx0 + 440, r3_y + 8, 110, 36).collidepoint(mx, my):
                 self.settings["target_fps"] = 60
                 self._save_settings()
@@ -1979,13 +1994,13 @@ class MaplewoodRPGApp:
 
         panel = pygame.Rect(72, 34, 1216, 788)
         self._draw_figma_card(
-            panel, bg_rgba=(18, 21, 34, 250), border_col=COLORS["gold"], radius=22, border_w=2, shadow_offset=10
+            panel, bg_rgba=(14, 16, 24, 252), border_col=COLORS["gold"], radius=20, border_w=2, shadow_offset=10
         )
 
-        t_surf = self.font_xl.render(
+        t_surf = self.font_gothic_xl.render(
             "CHRONICLES OF DUNWICK (1924)  •  CHOOSE YOUR FATE SCENARIO & PROTAGONIST", True, COLORS["gold"]
         )
-        self.screen.blit(t_surf, (panel.centerx - t_surf.get_width() // 2, 52))
+        self.screen.blit(t_surf, (panel.centerx - t_surf.get_width() // 2, 50))
 
         sub = self.font_xs.render(
             "STEP 1: Select 1 of the 3 Fate Scenarios ([F1]-[F3] or Click)   •   STEP 2: Choose 1 of the 4 Family Members ([1]-[4] — ONLY THEY WILL KNOW!)",
@@ -2113,7 +2128,7 @@ class MaplewoodRPGApp:
         lore_data = FAMILY_LORE_PROLOGUES.get(p.id, FAMILY_LORE_PROLOGUES["arthur"])
         scen_data = SCENARIO_MODES[self.world.scenario_mode]
 
-        hdr = self.font_xl.render(
+        hdr = self.font_gothic_xl.render(
             f"{scen_data['short_title']}  •  {scen_data['subtitle'].upper()}", True, scen_data["badge_color"]
         )
         self.screen.blit(hdr, (panel.centerx - hdr.get_width() // 2, 54))
@@ -2194,7 +2209,7 @@ class MaplewoodRPGApp:
         x0, y0 = rect.x + 32, rect.y + 24
         scen_title = SCENARIO_MODES[self.world.scenario_mode]["short_title"]
         self.screen.blit(
-            self.font_xl.render(f"FORESIGHT JOURNAL & 7-DAY BUTTERFLY WEB  •  {scen_title}", True, COLORS["gold"]),
+            self.font_gothic_xl.render(f"FORESIGHT JOURNAL & 7-DAY BUTTERFLY WEB  •  {scen_title}", True, COLORS["gold"]),
             (x0, y0),
         )
         y0 += 38
@@ -2298,7 +2313,7 @@ class MaplewoodRPGApp:
             if is_win
             else f"FATE CLAIMED ITS TOLL ON {self.world.get_day_name().upper()}  -->  REWINDING TO LOOP #{self.world.loop_id + 1}"
         )
-        self.screen.blit(self.font_xl.render(hdr, True, col), (x0, y0))
+        self.screen.blit(self.font_gothic_xl.render(hdr, True, col), (x0, y0))
         y0 += 54
 
         y0 = self._render_wrapped_text(

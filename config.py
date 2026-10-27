@@ -50,6 +50,7 @@ SETTINGS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "s
 
 DEFAULT_SETTINGS = {
     "display_mode": "FULLSCREEN",
+    "menu_background": "DUNWICK_MARKET",
     "darkness_vignette": "BLOODBORNE_DARK",
     "atmospheric_particles": True,
     "target_fps": 60,
