@@ -1,0 +1,1219 @@
+{
+  "total_sprites": 108,
+  "categories": {
+    "tiles": 20,
+    "walls": 27,
+    "houses": 6,
+    "props": 35,
+    "furniture": 5,
+    "quests": 7,
+    "vehicles": 8
+  },
+  "contact_sheet": "/home/dareconduit/Documents/IsoEngine/assets/iso_sprites/dunwick_iso_contact_sheet.png",
+  "sprites": [
+    {
+      "id": "iso_cube_grass",
+      "category": "tiles",
+      "file": "tiles/iso_cube_grass.png",
+      "source": "tiles/iso_cube_grass.png (existing isometric cube)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_cube_rocky",
+      "category": "tiles",
+      "file": "tiles/iso_cube_rocky.png",
+      "source": "tiles/iso_cube_rocky.png (existing isometric cube)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_dirt_ground",
+      "label": "Moorland Dirt Ground",
+      "category": "tiles",
+      "file": "tiles/iso_dirt_ground.png",
+      "flat_file": "tiles/iso_dirt_ground_flat.png",
+      "source": "tiles/dirt_ground.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_dirt_tiles",
+      "label": "Dirt Stepping Stones",
+      "category": "tiles",
+      "file": "tiles/iso_dirt_tiles.png",
+      "flat_file": "tiles/iso_dirt_tiles_flat.png",
+      "source": "tiles/dirt_tiles.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_moor_grass",
+      "label": "Severn Moorland Greensward",
+      "category": "tiles",
+      "file": "tiles/iso_moor_grass.png",
+      "flat_file": "tiles/iso_moor_grass_flat.png",
+      "source": "proc:moor_grass",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_cobblestone",
+      "label": "High Street Basalt Cobblestone",
+      "category": "tiles",
+      "file": "tiles/iso_cobblestone.png",
+      "flat_file": "tiles/iso_cobblestone_flat.png",
+      "source": "proc:cobblestone",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_tram_rail_ne",
+      "label": "Steam-Tramway Rail (NE-SW)",
+      "category": "tiles",
+      "file": "tiles/iso_tram_rail_ne.png",
+      "flat_file": "tiles/iso_tram_rail_ne_flat.png",
+      "source": "proc:tram_rail_x",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_tram_rail_nw",
+      "label": "Steam-Tramway Rail (NW-SE)",
+      "category": "tiles",
+      "file": "tiles/iso_tram_rail_nw.png",
+      "flat_file": "tiles/iso_tram_rail_nw_flat.png",
+      "source": "proc:tram_rail_y",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_crosswalk",
+      "label": "High Street Flagstone Crosswalk",
+      "category": "tiles",
+      "file": "tiles/iso_crosswalk.png",
+      "flat_file": "tiles/iso_crosswalk_flat.png",
+      "source": "proc:crosswalk",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_sidewalk",
+      "label": "Sandstone Flagstone Sidewalk",
+      "category": "tiles",
+      "file": "tiles/iso_sidewalk.png",
+      "flat_file": "tiles/iso_sidewalk_flat.png",
+      "source": "tiles/stone_slab.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_stone_inset",
+      "label": "Chancery Stone Inset Floor",
+      "category": "tiles",
+      "file": "tiles/iso_stone_inset.png",
+      "flat_file": "tiles/iso_stone_inset_flat.png",
+      "source": "tiles/stone_inset.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_stone_tile",
+      "label": "Ashlar Dressed Stone Floor",
+      "category": "tiles",
+      "file": "tiles/iso_stone_tile.png",
+      "flat_file": "tiles/iso_stone_tile_flat.png",
+      "source": "tiles/stone_tile.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_stone_uneven",
+      "label": "Ancient Uneven Cobble",
+      "category": "tiles",
+      "file": "tiles/iso_stone_uneven.png",
+      "flat_file": "tiles/iso_stone_uneven_flat.png",
+      "source": "tiles/stone_uneven.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_step_stone",
+      "label": "Dressed Limestone Slab",
+      "category": "tiles",
+      "file": "tiles/iso_step_stone.png",
+      "flat_file": "tiles/iso_step_stone_flat.png",
+      "source": "tiles/step_stone.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wood_planks",
+      "label": "Tudor Polished Oak Planks",
+      "category": "tiles",
+      "file": "tiles/iso_wood_planks.png",
+      "flat_file": "tiles/iso_wood_planks_flat.png",
+      "source": "tiles/wood_planks.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_carpet_main",
+      "label": "Ashford Crimson & Gold Runner",
+      "category": "tiles",
+      "file": "tiles/iso_carpet_main.png",
+      "flat_file": "tiles/iso_carpet_main_flat.png",
+      "source": "tiles/carpet_main.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_carpet_small",
+      "label": "Parlour Woven Rug",
+      "category": "tiles",
+      "file": "tiles/iso_carpet_small.png",
+      "flat_file": "tiles/iso_carpet_small_flat.png",
+      "source": "tiles/carpet_small.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_door_threshold",
+      "label": "Threshold & Welcome Mat",
+      "category": "tiles",
+      "file": "tiles/iso_door_threshold.png",
+      "flat_file": "tiles/iso_door_threshold_flat.png",
+      "source": "proc:door_threshold",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_gym_court",
+      "label": "St. Dunstan's Fencing Court",
+      "category": "tiles",
+      "file": "tiles/iso_gym_court.png",
+      "flat_file": "tiles/iso_gym_court_flat.png",
+      "source": "proc:gym_court",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_water",
+      "label": "Severn Canal & Basin Water",
+      "category": "tiles",
+      "file": "tiles/iso_water.png",
+      "flat_file": "tiles/iso_water_flat.png",
+      "source": "proc:water",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_stone_sw",
+      "label": "Tudor Ashlar Stone Wall (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_stone_sw.png",
+      "source": "props/wall_stone.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_stone_se",
+      "label": "Tudor Ashlar Stone Wall (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_stone_se.png",
+      "source": "props/wall_stone.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_aged_sw",
+      "label": "Weathered Sanctuary Wall (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_aged_sw.png",
+      "source": "props/wall_aged.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_aged_se",
+      "label": "Weathered Sanctuary Wall (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_aged_se.png",
+      "source": "props/wall_aged.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_window_sw",
+      "label": "Lancet Stained-Glass Window Wall (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_window_sw.png",
+      "source": "props/wall_window.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_window_se",
+      "label": "Lancet Stained-Glass Window Wall (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_window_se.png",
+      "source": "props/wall_window.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_round_win_sw",
+      "label": "Rose Oculus Window Wall (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_round_win_sw.png",
+      "source": "props/wall_round_win.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_round_win_se",
+      "label": "Rose Oculus Window Wall (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_round_win_se.png",
+      "source": "props/wall_round_win.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_window_bars_sw",
+      "label": "Constabulary Barred Window Wall (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_window_bars_sw.png",
+      "source": "props/wall_window_bars.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_window_bars_se",
+      "label": "Constabulary Barred Window Wall (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_window_bars_se.png",
+      "source": "props/wall_window_bars.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_books_sw",
+      "label": "Library Recessed Book-Wall (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_books_sw.png",
+      "source": "props/wall_books.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_books_se",
+      "label": "Library Recessed Book-Wall (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_books_se.png",
+      "source": "props/wall_books.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_archway_sw",
+      "label": "Gothic Stone Archway (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_archway_sw.png",
+      "source": "props/wall_archway.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_archway_se",
+      "label": "Gothic Stone Archway (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_archway_se.png",
+      "source": "props/wall_archway.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_door_closed_sw",
+      "label": "Heavy Oak Portal (Closed) (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_door_closed_sw.png",
+      "source": "props/wall_door_closed.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_door_closed_se",
+      "label": "Heavy Oak Portal (Closed) (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_door_closed_se.png",
+      "source": "props/wall_door_closed.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_door_open_sw",
+      "label": "Heavy Oak Portal (Open) (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_door_open_sw.png",
+      "source": "props/wall_door_open.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_door_open_se",
+      "label": "Heavy Oak Portal (Open) (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_door_open_se.png",
+      "source": "props/wall_door_open.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_half_sw",
+      "label": "Low Stone Parapet Wall (SW)",
+      "category": "walls",
+      "file": "walls/iso_wall_half_sw.png",
+      "source": "props/wall_half.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wall_half_se",
+      "label": "Low Stone Parapet Wall (SE)",
+      "category": "walls",
+      "file": "walls/iso_wall_half_se.png",
+      "source": "props/wall_half.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_column_stone",
+      "label": "Gothic Stone Pillar",
+      "category": "walls",
+      "file": "walls/iso_column_stone.png",
+      "source": "props/column_stone.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_column_wood",
+      "label": "Tudor Oak Timber Pillar",
+      "category": "walls",
+      "file": "walls/iso_column_wood.png",
+      "source": "props/column_wood.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_support_beams",
+      "label": "Timber Arch Bracing",
+      "category": "walls",
+      "file": "walls/iso_support_beams.png",
+      "source": "props/support_beams.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_stairs_aged",
+      "label": "Isometric Stone Staircase",
+      "category": "walls",
+      "file": "walls/iso_stairs_aged.png",
+      "source": "props/stairs_aged.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_stairs_spiral",
+      "label": "Clocktower Spiral Staircase",
+      "category": "walls",
+      "file": "walls/iso_stairs_spiral.png",
+      "source": "props/stairs_spiral.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_fence_iron_sw",
+      "label": "Wrought-Iron Estate Fence (SW)",
+      "category": "walls",
+      "file": "walls/iso_fence_iron_sw.png",
+      "source": "procedural:wrought_iron_fence",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_fence_iron_se",
+      "label": "Wrought-Iron Estate Fence (SE)",
+      "category": "walls",
+      "file": "walls/iso_fence_iron_se.png",
+      "source": "procedural:wrought_iron_fence",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_house_home",
+      "label": "Ashford-Mercer Tudor Manor",
+      "category": "houses",
+      "file": "houses/iso_house_home.png",
+      "source": "houses/house_home.png",
+      "footprint": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "iso_house_cafe",
+      "label": "The Brass Kettle Teahouse",
+      "category": "houses",
+      "file": "houses/iso_house_cafe.png",
+      "source": "houses/house_cafe.png",
+      "footprint": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "iso_house_office",
+      "label": "Borough Foundry & Clocktower",
+      "category": "houses",
+      "file": "houses/iso_house_office.png",
+      "source": "houses/house_office.png",
+      "footprint": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "iso_house_school",
+      "label": "St. Dunstan's Polytechnic",
+      "category": "houses",
+      "file": "houses/iso_house_school.png",
+      "source": "houses/house_school.png",
+      "footprint": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "iso_house_market",
+      "label": "Guildhall Bazaar & Apothecary",
+      "category": "houses",
+      "file": "houses/iso_house_market.png",
+      "source": "houses/house_market.png",
+      "footprint": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "iso_house_park",
+      "label": "Severn Commons & Constabulary",
+      "category": "houses",
+      "file": "houses/iso_house_park.png",
+      "source": "houses/house_park.png",
+      "footprint": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "iso_barrels",
+      "label": "Iso Barrels",
+      "category": "props",
+      "file": "props/iso_barrels.png",
+      "source": "props/iso_barrels.png (existing isometric)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_bookcase",
+      "label": "Iso Bookcase",
+      "category": "props",
+      "file": "props/iso_bookcase.png",
+      "source": "props/iso_bookcase.png (existing isometric)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_crates",
+      "label": "Iso Crates",
+      "category": "props",
+      "file": "props/iso_crates.png",
+      "source": "props/iso_crates.png (existing isometric)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_display",
+      "label": "Iso Display",
+      "category": "props",
+      "file": "props/iso_display.png",
+      "source": "props/iso_display.png (existing isometric)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_table_round",
+      "label": "Iso Table Round",
+      "category": "props",
+      "file": "props/iso_table_round.png",
+      "source": "props/iso_table_round.png (existing isometric)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "lab_blue_comp",
+      "label": "Lab Blue Comp",
+      "category": "props",
+      "file": "props/lab_blue_comp.png",
+      "source": "props/lab_blue_comp.png (existing isometric)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "lab_desk_pc",
+      "label": "Lab Desk Pc",
+      "category": "props",
+      "file": "props/lab_desk_pc.png",
+      "source": "props/lab_desk_pc.png (existing isometric)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_barrel_single",
+      "label": "Barrel Single",
+      "category": "props",
+      "file": "props/iso_barrel_single.png",
+      "source": "props/barrel_single.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_barrels_group",
+      "label": "Barrels Group",
+      "category": "props",
+      "file": "props/iso_barrels_group.png",
+      "source": "props/barrels_group.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_barrels_stacked",
+      "label": "Barrels Stacked",
+      "category": "props",
+      "file": "props/iso_barrels_stacked.png",
+      "source": "props/barrels_stacked.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_book_stand",
+      "label": "Book Stand",
+      "category": "props",
+      "file": "props/iso_book_stand.png",
+      "source": "props/book_stand.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_bookcase_desk",
+      "label": "Bookcase Desk",
+      "category": "props",
+      "file": "props/iso_bookcase_desk.png",
+      "source": "props/bookcase_desk.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_bookcase_glass",
+      "label": "Bookcase Glass",
+      "category": "props",
+      "file": "props/iso_bookcase_glass.png",
+      "source": "props/bookcase_glass.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_bookcase_half",
+      "label": "Bookcase Half",
+      "category": "props",
+      "file": "props/iso_bookcase_half.png",
+      "source": "props/bookcase_half.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_bookcase_ladder",
+      "label": "Bookcase Ladder",
+      "category": "props",
+      "file": "props/iso_bookcase_ladder.png",
+      "source": "props/bookcase_ladder.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_bookcase_wide",
+      "label": "Bookcase Wide",
+      "category": "props",
+      "file": "props/iso_bookcase_wide.png",
+      "source": "props/bookcase_wide.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_candle_double",
+      "label": "Candle Double",
+      "category": "props",
+      "file": "props/iso_candle_double.png",
+      "source": "props/candle_double.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_candle_single",
+      "label": "Candle Single",
+      "category": "props",
+      "file": "props/iso_candle_single.png",
+      "source": "props/candle_single.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_chair_single",
+      "label": "Chair Single",
+      "category": "props",
+      "file": "props/iso_chair_single.png",
+      "source": "props/chair_single.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_chest_closed",
+      "label": "Chest Closed",
+      "category": "props",
+      "file": "props/iso_chest_closed.png",
+      "source": "props/chest_closed.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_chest_open",
+      "label": "Chest Open",
+      "category": "props",
+      "file": "props/iso_chest_open.png",
+      "source": "props/chest_open.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_crate_single",
+      "label": "Crate Single",
+      "category": "props",
+      "file": "props/iso_crate_single.png",
+      "source": "props/crate_single.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_crates_group",
+      "label": "Crates Group",
+      "category": "props",
+      "file": "props/iso_crates_group.png",
+      "source": "props/crates_group.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_display_books",
+      "label": "Display Books",
+      "category": "props",
+      "file": "props/iso_display_books.png",
+      "source": "props/display_books.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_display_open",
+      "label": "Display Open",
+      "category": "props",
+      "file": "props/iso_display_open.png",
+      "source": "props/display_open.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_display_sword",
+      "label": "Display Sword",
+      "category": "props",
+      "file": "props/iso_display_sword.png",
+      "source": "props/display_sword.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_long_table_books",
+      "label": "Long Table Books",
+      "category": "props",
+      "file": "props/iso_long_table_books.png",
+      "source": "props/long_table_books.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_long_table_chairs",
+      "label": "Long Table Chairs",
+      "category": "props",
+      "file": "props/iso_long_table_chairs.png",
+      "source": "props/long_table_chairs.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_long_table_plain",
+      "label": "Long Table Plain",
+      "category": "props",
+      "file": "props/iso_long_table_plain.png",
+      "source": "props/long_table_plain.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_paper_clutter",
+      "label": "Paper Clutter",
+      "category": "props",
+      "file": "props/iso_paper_clutter.png",
+      "source": "props/paper_clutter.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_table_round_chairs",
+      "label": "Table Round Chairs",
+      "category": "props",
+      "file": "props/iso_table_round_chairs.png",
+      "source": "props/table_round_chairs.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_table_round_items",
+      "label": "Table Round Items",
+      "category": "props",
+      "file": "props/iso_table_round_items.png",
+      "source": "props/table_round_items.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_table_short_chairs",
+      "label": "Table Short Chairs",
+      "category": "props",
+      "file": "props/iso_table_short_chairs.png",
+      "source": "props/table_short_chairs.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_tree_hd2d",
+      "label": "Tree Hd2D",
+      "category": "props",
+      "file": "props/iso_tree_hd2d.png",
+      "source": "props/tree_hd2d.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_wood_pile",
+      "label": "Wood Pile",
+      "category": "props",
+      "file": "props/iso_wood_pile.png",
+      "source": "props/wood_pile.png",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_chesterfield_sofa",
+      "label": "Chesterfield Tufted Parlour Sofa",
+      "category": "furniture",
+      "file": "furniture/iso_chesterfield_sofa.png",
+      "source": "art_engine_25d:draw_sofa",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_victorian_coal_range",
+      "label": "Victorian Cast-Iron Coal Range",
+      "category": "furniture",
+      "file": "furniture/iso_victorian_coal_range.png",
+      "source": "art_engine_25d:draw_kitchen_island",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_street_gaslamp",
+      "label": "Victorian Brass Street Gaslamp",
+      "category": "furniture",
+      "file": "furniture/iso_street_gaslamp.png",
+      "source": "art_engine_25d:draw_street_lamp",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_topiary_hedge",
+      "label": "Sculpted Estate Topiary Hedge",
+      "category": "furniture",
+      "file": "furniture/iso_topiary_hedge.png",
+      "source": "art_engine_25d:draw_hedge",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "iso_gargoyle_fountain",
+      "label": "Severn Gargoyle Courtyard Fountain",
+      "category": "furniture",
+      "file": "furniture/iso_gargoyle_fountain.png",
+      "source": "art_engine_25d:draw_park_fountain",
+      "footprint": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "iso_quest_cafe_counter",
+      "label": "Copper Steam-Urn & Tea Bar (Quest)",
+      "category": "quests",
+      "file": "quests/iso_quest_cafe_counter.png",
+      "source": "art_engine_25d:draw_cafe_counter",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_quest_power_generator",
+      "label": "Central Steam-Boiler & Regulator (Quest)",
+      "category": "quests",
+      "file": "quests/iso_quest_power_generator.png",
+      "source": "art_engine_25d:draw_power_generator",
+      "footprint": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "iso_quest_school_lab_table",
+      "label": "Galvanic & Alchemical Bench (Quest)",
+      "category": "quests",
+      "file": "quests/iso_quest_school_lab_table.png",
+      "source": "art_engine_25d:draw_school_lab",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_quest_market_ledger",
+      "label": "Apothecary & Merchant Ledger (Quest)",
+      "category": "quests",
+      "file": "quests/iso_quest_market_ledger.png",
+      "source": "art_engine_25d:draw_market_stall",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_quest_police_dispatch",
+      "label": "Constabulary Telegraph Desk (Quest)",
+      "category": "quests",
+      "file": "quests/iso_quest_police_dispatch.png",
+      "source": "art_engine_25d:draw_police_desk",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_quest_office_records",
+      "label": "Chancery Pneumatic & Drafting Desk (Quest)",
+      "category": "quests",
+      "file": "quests/iso_quest_office_records.png",
+      "source": "art_engine_25d:draw_office_desk",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_quest_study_notebook",
+      "label": "Ashford Brass Orrery & Study Desk (Quest)",
+      "category": "quests",
+      "file": "quests/iso_quest_study_notebook.png",
+      "source": "art_engine_25d:draw_study_desk",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_car_crimson_sw",
+      "label": "Crimson Brass Steam-Carriage (SW)",
+      "category": "vehicles",
+      "file": "vehicles/iso_car_crimson_sw.png",
+      "source": "vehicles/car_crimson.png",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_car_crimson_se",
+      "label": "Crimson Brass Steam-Carriage (SE)",
+      "category": "vehicles",
+      "file": "vehicles/iso_car_crimson_se.png",
+      "source": "vehicles/car_crimson.png",
+      "footprint": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "iso_car_emerald_sw",
+      "label": "Emerald Brass Steam-Carriage (SW)",
+      "category": "vehicles",
+      "file": "vehicles/iso_car_emerald_sw.png",
+      "source": "vehicles/car_emerald.png",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_car_emerald_se",
+      "label": "Emerald Brass Steam-Carriage (SE)",
+      "category": "vehicles",
+      "file": "vehicles/iso_car_emerald_se.png",
+      "source": "vehicles/car_emerald.png",
+      "footprint": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "iso_car_navy_sw",
+      "label": "Navy Brass Steam-Carriage (SW)",
+      "category": "vehicles",
+      "file": "vehicles/iso_car_navy_sw.png",
+      "source": "vehicles/car_navy.png",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_car_navy_se",
+      "label": "Navy Brass Steam-Carriage (SE)",
+      "category": "vehicles",
+      "file": "vehicles/iso_car_navy_se.png",
+      "source": "vehicles/car_navy.png",
+      "footprint": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "iso_tram_amber_sw",
+      "label": "Dunwick Amber Steam Omni-Tram (SW)",
+      "category": "vehicles",
+      "file": "vehicles/iso_tram_amber_sw.png",
+      "source": "vehicles/tram_amber.png",
+      "footprint": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "iso_tram_amber_se",
+      "label": "Dunwick Amber Steam Omni-Tram (SE)",
+      "category": "vehicles",
+      "file": "vehicles/iso_tram_amber_se.png",
+      "source": "vehicles/tram_amber.png",
+      "footprint": [
+        1,
+        2
+      ]
+    }
+  ]
+}
