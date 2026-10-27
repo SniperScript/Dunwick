@@ -1,5 +1,6 @@
 {
   "display_mode": "FULLSCREEN",
+  "menu_background": "DUNWICK_MARKET",
   "darkness_vignette": "BLOODBORNE_DARK",
   "atmospheric_particles": true,
   "target_fps": 60,
