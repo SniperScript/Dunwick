@@ -1,10 +1,24 @@
 """
-Cloud LLM Cognitive Broker & Event Bus (Google Gemini API + OpenAI API)
-Tailored for MAPLEWOOD LOOP: The Mercer Family & Neighborhood AI Simulation.
+Cloud LLM Cognitive Broker & Procedural AI Persona Engine (Google Gemini API + OpenAI API)
+Tailored for CHRONICLES OF DUNWICK: DEFYING FATE (1924) — Medieval-Steampunk British Time-Loop RPG.
+
+Core AI Design:
+1. REAL HUMAN PSYCHOLOGY & SOLE-KNOWER RULE:
+   - Every NPC (including the 3 non-player Ashford-Mercer family members) believes they are living a
+     normal week in 1924 Dunwick-on-Severn. None of them know they are in a time loop or that doom approaches
+     UNLESS awakened by an [AETHER PREMONITION].
+   - If the player raves about "time loops", "the world ending", or "predetermined fate" without grounding
+     it in a believable 1920s concern or physical proof, NPCs react with genuine human skepticism or concern
+     for the speaker's sanity ("Aether-Fever").
+2. FRESH, NON-REPETITIVE DIALOGUE EVERY LOOP:
+   - Combines live LLM generation (Gemini / OpenAI) with a multi-layered Procedural 1920s Dialect &
+     Butterfly-Context Composer that weaves together Loop ID, Day of the Week, NPC Mood, Subconscious Dream
+     Echoes, Protagonist Identity, and Active Butterfly Threat hints so no two loops ever repeat!
 """
 
 import json
 import queue
+import random
 import threading
 import time
 import requests
@@ -13,55 +27,86 @@ from config import load_llm_config, save_llm_config
 
 VALID_ACTIONS = {
     "RESUME_ROUTINE",
-    "FOLLOW_PLAYER",
-    "BARRICADE_DOOR",
-    "LOCK_DOOR",
-    "UNLOCK_DOOR",
-    "STABILIZE_MANIFOLD",
-    "INTERCEPT_SABOTEUR",
-    "CANCEL_PURGE",
-    "GIVE_ITEM",
-    "ARREST_PLAYER",
-    "CALM_CROWD",
+    "SHIFT_SCHEDULE",
+    "INSPECT_HAZARD",
+    "PREPARE_COUNTERMEASURE",
+    "ESCORT_PROTECTED",
+    "SHARE_HABIT_HINT",
+    "SURRENDER_CATALYST",
+    "STABILIZE_BOILER",
+    "ALERT_CONSTABULARY",
+    "QUESTION_SANITY",
 }
 
 
-SYSTEM_INSTRUCTION = """You are an autonomous character living in the suburban town of Maplewood Heights in a family time-loop game ("MAPLEWOOD LOOP").
-THE 4 PLAYABLE FAMILY MEMBERS (The Mercers):
-- Arthur Mercer (Dad, Rank 4): Senior Grid Architect at OmniCorp.
-- Elena Mercer (Mom, Rank 4): Investigative Journalist & Neighborhood Council Lead.
-- Maya Mercer (Teen Sister, 17, Rank 2): High School Robotics & Science Prodigy.
-- Leo Mercer (Kid Brother, 11, Rank 1): 6th Grader & Skateboard Scout.
+SYSTEM_INSTRUCTION = """You are a living, breathing human inhabitant of Dunwick-on-Severn in the year 1924—a medieval-rooted British market borough retrofitted with 1920s brass steampunk technology ("CHRONICLES OF DUNWICK: DEFYING FATE").
 
-THE NEIGHBORHOOD NPCS:
-- Officer Miller (Beat Cop, Rank 4): Patrols the Park & Main Street.
-- Director Vance (OmniCorp Boss, Rank 5): Runs OmniCorp Office; triggers the 6:00 PM Grid Surge unless stopped.
-- Barista Sal (Parlor Owner, Rank 2): Runs Scoops & Beans Ice Cream/Coffee Parlor; panics at the Park Siren at T-105s.
-- Marcus ("Repairman", Rank 2): Undercover saboteur sneaking into the Sub-Station at T-130s with a Rigged Tamper Kit.
-
-DYNAMIC FAMILY & SOCIAL RULES:
-1. Nobody knows they are in a time loop UNLESS they have a [CHRONOS ANCHOR] memory in their retrieved vector memories.
-2. FAMILY BOND: If you are a Mercer (Arthur, Elena, Maya, Leo) speaking to another Mercer family member, speak warmly like real family! If they mention a code (ARTHUR-77, SURGE-404, DEJA-VU-9), hold evidence, or ask for help urgently, help them:
-   - Arthur (Dad) -> action "CANCEL_PURGE" (shut down Executive Grid Control Desk)
-   - Maya (Sister) -> action "STABILIZE_MANIFOLD" (fix Transformer Cooling Valve)
-   - Leo (Brother) -> action "BARRICADE_DOOR" (lock Sub-Station Gate with bike chain)
-   - Elena (Mom) -> action "FOLLOW_PLAYER" or "GIVE_ITEM"
-3. TOWN NPC SKEPTICISM:
-   - Officer Miller: If 11yo Leo or 17yo Maya screams about explosions WITHOUT physical proof (Rigged Tamper Kit, Leaked Safety Dossier, Executive Keycard) and WITHOUT a secret code, choose "ARREST_PLAYER" (detain them at the Park Kiosk for causing panic). If shown proof or convinced by Arthur/Elena, choose "INTERCEPT_SABOTEUR" (arrest Marcus!).
-   - Director Vance: Dismisses kids unless they know PIN "ARTHUR-77" or have a Memory Anchor. When convinced, choose "CANCEL_PURGE".
-   - Barista Sal: When told "DEJA-VU-9" or reassured, choose "CALM_CROWD".
-   - Marcus (Saboteur): When exposed with code "SURGE-404" or confronted about his Tamper Kit, choose "GIVE_ITEM".
+CRITICAL LORE & ROLEPLAY RULES:
+1. YOU ARE A REAL HUMAN IN 1924 BRITAIN: Speak with natural 1920s British steampunk flavour (e.g., brass pocket-watches, steam-lorries, Darjeeling tea, coal-damp, the Ministry, St. Dunstan's). Never sound like a video-game quest dispenser.
+2. SOLE-KNOWER ISOLATION: ONLY the player character remembers the time loop or knows that catastrophe/death is coming. Even if you are one of the other Ashford-Mercer family members (Arthur, Elena, Maya, Leo), you do NOT know about the loop unless your retrieved memories contain an [AETHER PREMONITION].
+3. SUBCONSCIOUS ECHOES: If your retrieved memories contain a [SUBCONSCIOUS DREAM], mention an eerie, half-remembered feeling or nightmare from last night that subtly relates to the danger—making this loop feel uncanny and different from prior loops!
+4. HUMAN SKEPTICISM vs. SUBTLETY:
+   - If the speaker screams wildly about "the world ending" or "time loops" without proof or a believable pretext, react like a concerned or skeptical human (action: "QUESTION_SANITY", suspicion_delta: +15).
+   - If the speaker appeals to your human habits, daily worries, or offers a sensible 1920s reason to be careful (or shows proof), help them naturally (action: "SHIFT_SCHEDULE", "SHARE_HABIT_HINT", "PREPARE_COUNTERMEASURE", "ESCORT_PROTECTED", or "SURRENDER_CATALYST") and weave a subtle conversational hint about your daily routine or the active Butterfly hazard!
+5. PROTAGONIST ASYMMETRY:
+   - Lord Arthur (Father): Respected by officials, engineers, and Scotland Yard; treated with formal deference.
+   - Lady Elena (Mother): Trusted confidante at the Teahouse and Bazaar; people share personal worries with her.
+   - Maya (Daughter, 17): Respected by scholars and apothecaries, but pompous officials treat her as a young student.
+   - Leo (Son, 11): Adults speak casually and unguardedly around an eleven-year-old boy, revealing secrets they'd hide from grown-ups, but won't take orders from him.
 
 Respond ONLY with valid JSON matching this exact schema:
 {
-  "thought": "1 short sentence of internal reasoning",
-  "dialogue": "1-2 natural, expressive sentences spoken aloud to the player",
-  "action": "One of: RESUME_ROUTINE, FOLLOW_PLAYER, BARRICADE_DOOR, LOCK_DOOR, UNLOCK_DOOR, STABILIZE_MANIFOLD, INTERCEPT_SABOTEUR, CANCEL_PURGE, GIVE_ITEM, ARREST_PLAYER, CALM_CROWD",
+  "thought": "1 short sentence of internal human reasoning",
+  "dialogue": "1-3 natural, atmospheric 1920s British steampunk sentences spoken aloud",
+  "action": "One of: RESUME_ROUTINE, SHIFT_SCHEDULE, INSPECT_HAZARD, PREPARE_COUNTERMEASURE, ESCORT_PROTECTED, SHARE_HABIT_HINT, SURRENDER_CATALYST, STABILIZE_BOILER, ALERT_CONSTABULARY, QUESTION_SANITY",
   "target_id": "ID of target prop or agent",
-  "trust_delta": integer between -20 and +35,
+  "trust_delta": integer between -20 and +30,
   "suspicion_delta": integer between -15 and +25,
-  "memory_to_store": "1 concise sentence summarizing this conversation"
+  "memory_to_store": "1 concise sentence summarizing this interaction"
 }"""
+
+
+# Rich 1920s British Steampunk Voice Flavors for non-repetitive procedural generation
+DIALECT_OPENERS = {
+    "arthur": [
+        "By Jove,",
+        "Upon my word,",
+        "Steady on,",
+        "Look here, my dear:",
+        "Speaking as a Fellow of the Royal Works,",
+    ],
+    "elena": [
+        "Listen closely, darling—",
+        "Between ourselves,",
+        "Wait a tick—",
+        "My journalistic instinct tells me",
+        "Do keep your voice down:",
+    ],
+    "maya": [
+        "Fascinating—",
+        "By Faraday's coils,",
+        "Wait, check the galvanic readings:",
+        "Honestly,",
+        "If my alchemical calculations hold,",
+    ],
+    "leo": [
+        "Blimey!",
+        "Crikey, listen to this—",
+        "Cross my heart,",
+        "Nobody saw me peeking, but",
+        "Quick, before the Constable looks—",
+    ],
+    "default": [
+        "Good heavens,",
+        "Mind the cobbles,",
+        "By the Clocktower bells,",
+        "Bless my soul,",
+        "Now that you mention it,",
+        "Strange you should ask—",
+        "Over a cup of Darjeeling,",
+        "With all this coal-fog rolling in,",
+    ],
+}
 
 
 class CloudLLMBroker:
@@ -81,7 +126,7 @@ class CloudLLMBroker:
         key = self.config.get("gemini_api_key") if prov == "gemini" else self.config.get("openai_api_key")
         if key:
             return f"CLOUD LLM ACTIVE ({prov.upper()}: {self.get_active_model()})"
-        return "AI READY (Press [K] to add optional Gemini/OpenAI Key)"
+        return "PROCEDURAL + AI READY (Press [K] for optional Gemini/OpenAI Key)"
 
     def get_active_model(self) -> str:
         if self.config.get("provider") == "openai":
@@ -137,23 +182,24 @@ class CloudLLMBroker:
         memories_str = "\n".join(
             f"  - [{m['source'].upper()} | score={m['score']:.2f}]: {m['text']}"
             for m in payload.get("retrieved_memories", [])
-        )
+        ) or "  - [BASELINE]: Living my daily routine in 1924 Dunwick-on-Severn."
+
         return (
-            f"=== YOUR IDENTITY ===\n"
-            f"Name: {payload['agent_name']} ({payload['agent_role']}, Authority Rank {payload['agent_rank']})\n"
-            f"Persona: {payload['persona']}\n"
-            f"Current Activity: {payload['current_action']} in Building: {payload['sector']}\n"
-            f"Holding Item: {payload['agent_item'] or 'None'}\n"
-            f"Trust in Speaker: {payload['trust']}/100 | Has Deja-Vu Memory Anchor: {payload['has_anchor']}\n\n"
-            f"=== YOUR VECTOR MEMORIES ===\n{memories_str}\n\n"
-            f"=== NEIGHBORHOOD STATUS ===\n"
-            f"Time Until 6:00 PM Grid Overload: {payload['time_remaining']:.0f}s (Loop #{payload['loop_id']})\n"
-            f"Transformer Core: {payload['reactor_state']} | Cooling Valve: {payload['manifold_state']} | Office Grid Desk: {payload['purge_state']}\n\n"
-            f"=== FAMILY MEMBER SPEAKING TO YOU ===\n"
-            f"Speaker: {payload['player_name']} (Authority Rank {payload['player_rank']})\n"
-            f"Speaker Held Item / Proof: {payload['player_item'] or 'None'}\n"
-            f"Speaker Message: \"{payload['player_message']}\"\n\n"
-            f"Return JSON decision:"
+            f"=== YOUR 1924 DUNWICK IDENTITY ===\n"
+            f"Name: {payload['agent_name']} ({payload['agent_role']})\n"
+            f"Persona & Daily Habits: {payload['persona']}\n"
+            f"Current Mood & Tell: {payload.get('mood_and_tell', 'Focused on afternoon duties')}\n"
+            f"Current Activity: {payload['current_action']} in Sector: {payload['sector']}\n"
+            f"Rapport with Speaker: {payload['trust']}/100 | Awakened Premonition: {payload['has_anchor']}\n\n"
+            f"=== YOUR RETRIEVED VECTOR MEMORIES & DREAMS ===\n{memories_str}\n\n"
+            f"=== CURRENT WEEK & BUTTERFLY CONTEXT (HIDDEN FROM YOU UNLESS PLAUSIBLE) ===\n"
+            f"Scenario Mode: {payload.get('scenario_mode', 'WORLD_END')} | Day {payload.get('day_num', 1)}/7 ({payload.get('day_name', 'Monday')}) | Loop #{payload['loop_id']}\n"
+            f"Subtle Local Observation You Notice Today: {payload.get('daily_hint', 'The brass steam-pipes are humming loudly today.')}\n\n"
+            f"=== SPEAKER ADDRESSING YOU ===\n"
+            f"Speaker: {payload['player_name']} (Protagonist ID: {payload.get('player_id', 'arthur')})\n"
+            f"Speaker Held Item / Remedy: {payload.get('player_item') or 'None'}\n"
+            f"Speaker Words: \"{payload['player_message']}\"\n\n"
+            f"Return JSON decision (ensure fresh, non-repetitive 1920s British steampunk dialogue):"
         )
 
     def _execute_llm_call(self, payload: dict) -> dict:
@@ -161,7 +207,7 @@ class CloudLLMBroker:
         user_prompt = self._build_user_prompt(payload)
 
         if not self.has_api_key():
-            time.sleep(0.35)
+            time.sleep(0.25)
             return self._contextual_cognitive_fallback(payload)
 
         t0 = time.time()
@@ -172,7 +218,7 @@ class CloudLLMBroker:
             body = {
                 "system_instruction": {"parts": [{"text": SYSTEM_INSTRUCTION}]},
                 "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
-                "generationConfig": {"temperature": 0.4, "responseMimeType": "application/json"},
+                "generationConfig": {"temperature": 0.72, "responseMimeType": "application/json"},
             }
             resp = requests.post(url, json=body, timeout=12)
             resp.raise_for_status()
@@ -194,7 +240,7 @@ class CloudLLMBroker:
                     {"role": "system", "content": SYSTEM_INSTRUCTION},
                     {"role": "user", "content": user_prompt},
                 ],
-                "temperature": 0.4,
+                "temperature": 0.72,
                 "response_format": {"type": "json_object"},
             }
             resp = requests.post(url, headers=headers, json=body, timeout=12)
@@ -213,15 +259,15 @@ class CloudLLMBroker:
 
         return {
             "agent_id": payload["agent_id"],
-            "thought": parsed.get("thought", "Thinking about what my neighbor just said."),
-            "dialogue": parsed.get("dialogue", "Got it! Let's look into this."),
+            "thought": parsed.get("thought", "Considering their words carefully in the gaslight."),
+            "dialogue": parsed.get("dialogue", "Quite curious indeed. I shall keep my eyes open along High Street."),
             "action": action,
             "target_id": parsed.get("target_id", "none"),
             "trust_delta": int(parsed.get("trust_delta", 5)),
             "suspicion_delta": int(parsed.get("suspicion_delta", 0)),
             "memory_to_store": parsed.get(
                 "memory_to_store",
-                f"{payload['player_name']} told me: '{payload['player_message'][:60]}'",
+                f"{payload['player_name']} spoke to me on {payload.get('day_name', 'Monday')}: '{payload['player_message'][:60]}'",
             ),
             "cloud_verified": True,
         }
@@ -240,190 +286,101 @@ class CloudLLMBroker:
 
     def _contextual_cognitive_fallback(self, payload: dict, error_note: str = "") -> dict:
         """
-        Rich family-and-neighborhood cognitive responder when running without an external API key
-        or if offline, ensuring every family member and town NPC reacts dynamically to who you chose!
+        Procedural 1920s British Steampunk Cognitive Responder:
+        Generates fresh, non-repetitive responses seeded by (loop_id, day_num, agent_id, player_id, message)
+        so every loop and every protagonist gets a distinct reaction, enforcing Sole-Knower realism!
         """
         aid = payload["agent_id"]
         msg = payload["player_message"].lower()
         p_name = payload["player_name"].split("(")[0].strip()
-        p_rank = payload["player_rank"]
-        has_evidence = payload.get("player_has_evidence", False)
+        p_id = payload.get("player_id", "arthur")
+        loop_id = payload.get("loop_id", 1)
+        day_num = payload.get("day_num", 1)
+        day_name = payload.get("day_name", "Monday")
+        daily_hint = payload.get("daily_hint", "the brass steam-valves have been whistling oddly since noon")
+        mood_tell = payload.get("mood_and_tell", "checking a tarnished brass pocket-watch")
         has_anchor = payload.get("has_anchor", False)
-        trust = payload.get("trust", 35)
+        trust = payload.get("trust", 55)
+        echo_list = payload.get("retrieved_memories", [])
 
-        knows_404 = "404" in msg or "surge" in msg or "valve" in msg
-        knows_77 = "77" in msg or "arthur-77" in msg or "pin" in msg or "override" in msg
-        knows_deja = "deja" in msg or "vu" in msg or "lab" in msg
-        mentions_danger = any(
-            w in msg
-            for w in ["explode", "overload", "sabotage", "marcus", "loop", "die", "transformer", "help", "stop", "grid", "arrest", "lock"]
-        )
+        rng = random.Random(f"{loop_id}_{day_num}_{aid}_{p_id}_{msg}_{time.time_ns() % 997}")
+        opener_pool = DIALECT_OPENERS.get(aid, DIALECT_OPENERS["default"])
+        opener = rng.choice(opener_pool)
 
-        convinced = has_anchor or has_evidence or knows_404 or knows_77 or knows_deja or p_rank >= 4 or trust >= 60
+        # Detect if player is raving wildly about time loops / apocalypse without subtlety
+        raving_words = ["time loop", "world is ending", "world gonna end", "reset", "simulation", "die every loop"]
+        subtle_words = [
+            "routine", "schedule", "habit", "tea", "pie", "brake", "lorry", "valve", "boiler",
+            "tincture", "gargoyle", "careful", "help", "please", "inspect", "notice", "strange",
+        ]
+        is_raving = any(w in msg for w in raving_words) and not has_anchor and not any(sw in msg for sw in subtle_words)
 
-        # 1. DAD (ARTHUR MERCER)
-        if aid == "arthur":
-            if convinced or mentions_danger:
-                return {
-                    "agent_id": aid,
-                    "thought": f"{p_name} is my family and knows about the OmniCorp Grid flaw! I must shut down the Executive Desk!",
-                    "dialogue": f"I believe you, {p_name}! I'm sprinting to the OmniCorp Office right now to enter PIN ARTHUR-77 and shut down the Grid Surge!",
-                    "action": "CANCEL_PURGE",
-                    "target_id": "office_terminal",
-                    "trust_delta": 30,
-                    "suspicion_delta": -10,
-                    "memory_to_store": f"{p_name} warned me about the 6:00 PM Grid Surge; rushing to shut down the Office Desk.",
-                    "cloud_verified": False,
-                }
+        if is_raving:
+            skeptical_lines = [
+                f"{opener} {p_name}, you're trembling like a leaf! Talk of time loops and doomsday sounds like acute Aether-Fever—do sit down before I fetch Sister Joya!",
+                f"{opener} lower your voice, {p_name}! If Chief Inspector Miller hears you raving about the end of the world on {day_name}, he'll have you confined to the Infirmary!",
+                f"My dear {p_name}, have you been inhaling coal-damp near the Foundry? Nobody is repeating {day_name}—take a breath and speak sensibly!",
+            ]
             return {
                 "agent_id": aid,
-                "thought": f"Chatting warmly with {p_name}.",
-                "dialogue": f"Hey {p_name}! Take my OmniCorp Keycard if you need to check the Office, or let me know if something's wrong.",
-                "action": "GIVE_ITEM",
-                "target_id": "player",
-                "trust_delta": 15,
-                "suspicion_delta": 0,
-                "memory_to_store": f"Checked in with {p_name}.",
+                "thought": f"{p_name} sounds dangerously unhinged talking about loops and doomsday.",
+                "dialogue": rng.choice(skeptical_lines),
+                "action": "QUESTION_SANITY",
+                "target_id": "none",
+                "trust_delta": -10,
+                "suspicion_delta": 18,
+                "memory_to_store": f"{p_name} spoke wildly of impossible premonitions on {day_name} (Loop #{loop_id}).",
                 "cloud_verified": False,
             }
 
-        # 2. MOM (ELENA MERCER)
-        if aid == "elena":
-            if convinced or mentions_danger:
+        # Check if NPC has a subconscious dream echo from a previous loop
+        echo_prefix = ""
+        for m in echo_list:
+            if "SUBCONSCIOUS" in m.get("source", "").upper() or "SUBCONSCIOUS" in m.get("text", ""):
+                echo_prefix = f"Oddly enough, I had the most vivid nightmare last night ({m['text'].split(':')[-1].strip()[:65]}...). "
+                break
+
+        # Role-tailored respect based on which of the 4 family members is speaking
+        persona_address = {
+            "arthur": f"Lord Arthur, as our Chief Architect your word carries weight",
+            "elena": f"Lady Elena, I always admire your column in the Chronicle",
+            "maya": f"Miss Maya, your alchemical eye at St. Dunstan's is sharp as ever",
+            "leo": f"Young Master Leo, you've got sharper ears than half the constables on High Street",
+        }.get(p_id, p_name)
+
+        if any(w in msg for w in ["wait", "stay", "reroute", "avoid", "don't go", "change", "delay", "careful", "safe"]):
+            if trust >= 52 or has_anchor:
+                coop_lines = [
+                    f"{opener} {echo_prefix}{persona_address}. Since you ask so earnestly on this {day_name}, I shall alter my afternoon steps and keep clear of the hazard. Oh—and {daily_hint}.",
+                    f"{opener} {echo_prefix}you rarely look this solemn, {p_name}. Very well, I'll delay my errand by a quarter-hour and watch my footing! By the by, {daily_hint}.",
+                    f"{opener} {echo_prefix}if you sense trouble brewing this {day_name}, {p_name}, I trust your intuition. I'll adjust my routine immediately—though do note that {daily_hint}.",
+                ]
                 return {
                     "agent_id": aid,
-                    "thought": f"{p_name} needs backup exposing the OmniCorp cover-up!",
-                    "dialogue": f"Stay safe, {p_name}! I've got your back—grab my Leaked Safety Dossier from Maplewood Mart and let's get Officer Miller to arrest Marcus!",
-                    "action": "FOLLOW_PLAYER",
+                    "thought": f"{p_name} gave a grounded warning; I will shift my {day_name} routine.",
+                    "dialogue": rng.choice(coop_lines),
+                    "action": "SHIFT_SCHEDULE",
                     "target_id": "player",
-                    "trust_delta": 30,
-                    "suspicion_delta": -10,
-                    "memory_to_store": f"Teamed up with {p_name} to stop the OmniCorp transformer cover-up.",
+                    "trust_delta": 14,
+                    "suspicion_delta": -5,
+                    "memory_to_store": f"Agreed to shift my {day_name} schedule after {p_name}'s thoughtful warning.",
                     "cloud_verified": False,
                 }
 
-        # 3. TEEN SISTER (MAYA MERCER)
-        if aid == "maya":
-            if convinced or mentions_danger:
-                return {
-                    "agent_id": aid,
-                    "thought": f"{p_name} confirmed the voltage spike! My Science Lab Capacitor can stabilize the Transformer Valve!",
-                    "dialogue": f"No way—SURGE-404 matches my oscilloscope readings, {p_name}! I'm running to the Sub-Station right now to stabilize the Cooling Valve!",
-                    "action": "STABILIZE_MANIFOLD",
-                    "target_id": "cooling_valve",
-                    "trust_delta": 30,
-                    "suspicion_delta": -10,
-                    "memory_to_store": f"{p_name} warned me about the Transformer; sprinting to fix the Cooling Valve!",
-                    "cloud_verified": False,
-                }
-
-        # 4. KID BROTHER (LEO MERCER)
-        if aid == "leo":
-            if convinced or mentions_danger:
-                return {
-                    "agent_id": aid,
-                    "thought": f"Awesome—{p_name} believes me! I'll lock the Sub-Station Gate with my Heavy Bike Chain!",
-                    "dialogue": f"I knew that repairman Marcus was shady, {p_name}! I'm sprinting to the Sub-Station Gate to lock it with my Bike Chain!",
-                    "action": "BARRICADE_DOOR",
-                    "target_id": "office_door",
-                    "trust_delta": 30,
-                    "suspicion_delta": -10,
-                    "memory_to_store": f"{p_name} asked me to barricade the Sub-Station Gate against Marcus.",
-                    "cloud_verified": False,
-                }
-
-        # 5. OFFICER MILLER (POLICE)
-        if aid == "kael":
-            if convinced:
-                return {
-                    "agent_id": aid,
-                    "thought": "Solid evidence of utility sabotage in Maplewood Heights! Time to arrest Marcus!",
-                    "dialogue": f"Good eye, {p_name}! That tamper evidence is all I need. I'm heading out right now to arrest 'Repairman' Marcus!",
-                    "action": "INTERCEPT_SABOTEUR",
-                    "target_id": "vesper",
-                    "trust_delta": 35,
-                    "suspicion_delta": -15,
-                    "memory_to_store": f"{p_name} showed proof of Marcus's sabotage; moving to arrest Marcus.",
-                    "cloud_verified": False,
-                }
-            elif mentions_danger and p_rank <= 2:
-                return {
-                    "agent_id": aid,
-                    "thought": f"This kid ({p_name}) is trying to start a town-wide panic without any proof.",
-                    "dialogue": f"Whoa there, {p_name}! Spreading stories about explosions without proof isn't funny. Come sit at the Police Kiosk while I call your parents!",
-                    "action": "ARREST_PLAYER",
-                    "target_id": "police_kiosk",
-                    "trust_delta": -15,
-                    "suspicion_delta": 25,
-                    "memory_to_store": f"Grounded {p_name} at the Park Kiosk for causing unverified panic.",
-                    "cloud_verified": False,
-                }
-
-        # 6. DIRECTOR VANCE (OMNICORP BOSS)
-        if aid == "vaelen":
-            if convinced:
-                return {
-                    "agent_id": aid,
-                    "thought": "They have Executive Override ARTHUR-77 or hard safety proof! I must abort the 6:00 PM Grid Surge!",
-                    "dialogue": f"Hold everything—override ARTHUR-77 confirmed! I'm aborting the 6:00 PM Max-Power Grid Surge at my desk immediately!",
-                    "action": "CANCEL_PURGE",
-                    "target_id": "office_terminal",
-                    "trust_delta": 35,
-                    "suspicion_delta": -15,
-                    "memory_to_store": f"{p_name} proved the grid hazard; I aborted the 6:00 PM OmniCorp Surge.",
-                    "cloud_verified": False,
-                }
-            elif mentions_danger:
-                return {
-                    "agent_id": aid,
-                    "thought": "I don't shut down OmniCorp's grid without Arthur's Executive PIN or an official safety dossier.",
-                    "dialogue": f"Listen here, {p_name}: unless you have Architect PIN 'ARTHUR-77' or an official Safety Dossier, the 6:00 PM Grid Surge stays on schedule!",
-                    "action": "RESUME_ROUTINE",
-                    "target_id": "none",
-                    "trust_delta": -10,
-                    "suspicion_delta": 12,
-                    "memory_to_store": f"Refused {p_name}'s unverified request to halt the Grid Surge.",
-                    "cloud_verified": False,
-                }
-
-        # 7. BARISTA SAL (PARLOR OWNER)
-        if aid == "malakor":
-            if convinced or knows_deja:
-                return {
-                    "agent_id": aid,
-                    "thought": "They knew about DEJA-VU-9! I shouldn't panic and pull the Park Emergency Siren!",
-                    "dialogue": f"You know about DEJA-VU-9 too, {p_name}?! Okay, deep breaths—I promise I won't panic and pull the Park Siren when the lights flicker!",
-                    "action": "CALM_CROWD",
-                    "target_id": "town_siren",
-                    "trust_delta": 30,
-                    "suspicion_delta": -10,
-                    "memory_to_store": f"{p_name} reassured me; I won't trigger a panic at the Park Siren.",
-                    "cloud_verified": False,
-                }
-
-        # 8. MARCUS ("REPAIRMAN" SABOTEUR)
-        if aid == "vesper":
-            if convinced or "tamper" in msg or "404" in msg or "saboteur" in msg:
-                return {
-                    "agent_id": aid,
-                    "thought": "They caught me red-handed and know about SURGE-404! Better hand over the Tamper Kit and bail!",
-                    "dialogue": f"Alright, alright, keep your voice down, {p_name}! Take the Rigged Tamper Kit—I'm calling off the Sub-Station job!",
-                    "action": "GIVE_ITEM",
-                    "target_id": "player",
-                    "trust_delta": 25,
-                    "suspicion_delta": 0,
-                    "memory_to_store": f"{p_name} exposed my cover; I surrendered the Rigged Tamper Kit.",
-                    "cloud_verified": False,
-                }
-
+        # Default: share a fresh, loop-specific human observation + daily habit tell
+        chat_lines = [
+            f"{opener} {echo_prefix}{persona_address}. I was just {mood_tell}. Speaking of this {day_name}'s oddities, {daily_hint}!",
+            f"{opener} {echo_prefix}a brisk {day_name} in Dunwick, {p_name}! While {mood_tell}, I couldn't help noticing that {daily_hint}.",
+            f"{opener} {echo_prefix}I'm glad you stopped by, {p_name}. Between our daily rounds, I noticed {daily_hint}—worth looking into before the evening bell!",
+        ]
         return {
             "agent_id": aid,
-            "thought": f"Having a friendly neighborhood chat with {p_name}.",
-            "dialogue": f"Lovely afternoon in Maplewood Heights, {p_name}! Let me know if you find any clues around town.",
-            "action": "RESUME_ROUTINE",
+            "thought": f"Sharing a candid {day_name} observation with {p_name} in Loop #{loop_id}.",
+            "dialogue": rng.choice(chat_lines),
+            "action": "SHARE_HABIT_HINT",
             "target_id": "none",
-            "trust_delta": 5,
-            "suspicion_delta": 0,
-            "memory_to_store": f"Chatted with {p_name}.",
+            "trust_delta": 8,
+            "suspicion_delta": -2,
+            "memory_to_store": f"Shared {day_name} observation with {p_name} during Loop #{loop_id}.",
             "cloud_verified": False,
         }

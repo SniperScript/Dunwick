@@ -3,3 +3,4 @@ __pycache__/
 .venv/
 llm_config.json
 .DS_Store
+assets/repos/

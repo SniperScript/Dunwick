@@ -1,17 +1,13 @@
 """
 2.5D Tile Matrix, Continuous Circle-vs-AABB Corner-Rolling Collision & A* Pathfinding Engine
-Architected using patterns from:
-- FIFE / Unknown Horizons & GemRB (from bobeff/open-source-games)
-- Tiny Life (Ellpeck/TinyLife) & IsoCity (victorqribeiro/isocity)
-
-Key Upgrade:
-- Replaces discrete grid-snag collision with Continuous Circle-vs-Rounded-Box Push-Out Resolution
-  plus Automatic Corner-Rounding Tangent Glide so players and NPCs NEVER get stuck on corners of
-  tables, chairs, or doorways!
+Tailored for 1924 Dunwick-on-Severn (Medieval-Steampunk British Borough):
+- Features 1920s Brass Steam-Carriages & Omni-Trams with vertical copper boiler stacks,
+  rotating brass-spoked wheels, and malfunctioning brake visual warnings during Butterfly crash days.
 """
 
 import heapq
 import math
+import os
 import random
 import pygame
 from config import BUILDINGS, WORLD_HEIGHT, WORLD_OBJECTS, WORLD_WIDTH
@@ -31,32 +27,58 @@ T_WALL = 6
 T_FURNITURE = 7
 
 
-class StreetVehicle:
-    """2.5D Defined Pixel-Art Vintage Town Motorcar / Tram that drives along Main Street and yields at crosswalks."""
+_VEHICLE_SPRITE_CACHE: dict[str, pygame.Surface] = {}
+_VEH_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "hd2d_sprites", "vehicles")
 
-    def __init__(self, y_lane: float, direction: float, color: tuple, vtype: str = "car"):
+
+class StreetVehicle:
+    """2.5D Pre-Rendered 1920s British Steampunk Steam-Carriage / Brass Omni-Tram along High Street."""
+
+    def __init__(self, y_lane: float, direction: float, color: tuple, vtype: str = "car", sprite_name: str = "car_crimson.png"):
         self.y = y_lane
         self.direction = direction  # 1.0 = Eastbound, -1.0 = Westbound
         self.x = random.uniform(100.0, WORLD_WIDTH - 100.0)
         self.color = color
         self.vtype = vtype
+        self.sprite_name = sprite_name
         self.speed = 185.0 if vtype == "car" else 142.0
         self.current_speed = self.speed
         self.wheel_phase = 0.0
+        self.runaway_hazard = False
+
+    def _get_sprite(self) -> pygame.Surface | None:
+        key = f"{self.sprite_name}_{'E' if self.direction > 0 else 'W'}"
+        if key in _VEHICLE_SPRITE_CACHE:
+            return _VEHICLE_SPRITE_CACHE[key]
+        path = os.path.join(_VEH_DIR, self.sprite_name)
+        if os.path.exists(path):
+            try:
+                surf = pygame.image.load(path).convert_alpha()
+                if self.direction < 0:
+                    surf = pygame.transform.flip(surf, True, False)
+                _VEHICLE_SPRITE_CACHE[key] = surf
+                return surf
+            except Exception:
+                _VEHICLE_SPRITE_CACHE[key] = None
+        return None
 
     def update(self, dt: float, characters: dict):
         blocked = False
         look_ahead = 98.0 * self.direction
-        for c in characters.values():
-            if getattr(c, "arrested", False):
-                continue
-            if abs(c.y - self.y) < 46.0:
-                dx = (c.x - self.x) * self.direction
-                if 0.0 < dx < abs(look_ahead):
-                    blocked = True
-                    break
+        if not self.runaway_hazard:
+            for c in characters.values():
+                if getattr(c, "arrested", False):
+                    continue
+                # NPC pedestrians at crosswalks make carriages slow down, but player stepping into traffic risks being struck!
+                if getattr(c, "is_player", False):
+                    continue
+                if abs(c.y - self.y) < 46.0:
+                    dx = (c.x - self.x) * self.direction
+                    if 0.0 < dx < abs(look_ahead):
+                        blocked = True
+                        break
 
-        target_spd = 0.0 if blocked else self.speed
+        target_spd = 0.0 if blocked else (self.speed * 1.32 if self.runaway_hazard else self.speed)
         self.current_speed += (target_spd - self.current_speed) * min(1.0, dt * 8.0)
         self.x += self.direction * self.current_speed * dt
         self.wheel_phase += self.current_speed * dt * 0.12
@@ -69,50 +91,57 @@ class StreetVehicle:
     def draw(self, surface: pygame.Surface, cam_x: float, cam_y: float):
         sx = int(self.x - cam_x)
         sy = int(self.y - cam_y)
-        w = 74 if self.vtype == "car" else 98
-        h = 36
-        if sx + w < -60 or sx - w > surface.get_width() + 60:
+        w = 96 if self.vtype == "car" else 124
+        h = 68
+        if sx + w < -80 or sx - w > surface.get_width() + 80:
             return
 
-        # 2.5D Ground Shadow
-        pygame.draw.ellipse(surface, (28, 30, 36), (sx - w // 2 + 2, sy - 6, w, 24))
+        # 1. Warm Additive Gaslight Headlamp Cone ahead of the vehicle!
+        beam_surf = pygame.Surface((90, 44), pygame.SRCALPHA)
+        if self.direction > 0:
+            pygame.draw.polygon(beam_surf, (255, 214, 110, 52), [(0, 16), (88, 2), (88, 42), (0, 28)])
+            surface.blit(beam_surf, (sx + w // 2 - 12, sy - 16))
+        else:
+            pygame.draw.polygon(beam_surf, (255, 214, 110, 52), [(90, 16), (2, 2), (2, 42), (90, 28)])
+            surface.blit(beam_surf, (sx - w // 2 - 78, sy - 16))
 
-        # 3D Lower Chassis
-        chassis = pygame.Rect(sx - w // 2, sy - h // 2 + 2, w, h - 8)
-        dark_col = (max(0, self.color[0] - 45), max(0, self.color[1] - 45), max(0, self.color[2] - 45))
-        pygame.draw.rect(surface, dark_col, chassis, border_radius=8)
-        pygame.draw.rect(surface, self.color, chassis.move(0, -5), border_radius=8)
-        pygame.draw.rect(surface, (28, 24, 22), chassis.move(0, -5), 2, border_radius=8)
+        # 2. Blit 3D-Shaded Vehicle Sprite
+        spr = self._get_sprite()
+        if spr is not None:
+            surface.blit(spr, (sx - spr.get_width() // 2, sy - spr.get_height() + 20))
+        else:
+            chassis = pygame.Rect(sx - w // 2, sy - 18, w, 30)
+            pygame.draw.rect(surface, self.color, chassis, border_radius=6)
 
-        # 2.5D Raised Cabin Roof & Paned Windows
-        cab_w = int(w * 0.62)
-        cabin = pygame.Rect(sx - cab_w // 2, sy - h // 2 - 11, cab_w, h - 14)
-        pygame.draw.rect(surface, (238, 228, 208), cabin, border_radius=6)
-        win = cabin.inflate(-10, -6)
-        pygame.draw.rect(surface, (145, 208, 238), win, border_radius=4)
-        pygame.draw.line(surface, (42, 36, 32), (win.centerx, win.top), (win.centerx, win.bottom), 2)
-        pygame.draw.rect(surface, (32, 28, 24), cabin, 2, border_radius=6)
+        # 3. Puffing Steam Plume & Runaway Brake Hazard Sparks
+        chim_x = sx + int(self.direction * (w // 2 - 15))
+        puff_off = int(math.sin(self.wheel_phase * 0.6) * 3)
+        pygame.draw.circle(surface, (226, 222, 214), (chim_x - int(self.direction * 6), sy - 46 + puff_off), 6)
+        pygame.draw.circle(surface, (195, 190, 182), (chim_x - int(self.direction * 13), sy - 52 - puff_off), 4)
 
-        # Brass Headlights
-        hx = sx + (w // 2 - 3) if self.direction > 0 else sx - (w // 2 + 3)
-        pygame.draw.circle(surface, (255, 235, 135), (hx, sy - 6), 4)
-        pygame.draw.circle(surface, (255, 235, 135), (hx, sy + 5), 4)
+        if self.runaway_hazard:
+            pygame.draw.circle(surface, (255, 88, 58), (chim_x, sy - 40), 8, 2)
 
-        # Animated Rotating Wheels
-        for wx_off in (-w // 3, w // 3):
+        # 4. Animated Brass-Spoked Wheels
+        for wx_off in (-w // 3 + 4, w // 3 - 4):
             wx_p, wy_p = sx + wx_off, sy + 11
-            pygame.draw.circle(surface, (32, 34, 38), (wx_p, wy_p), 8)
-            pygame.draw.circle(surface, (215, 185, 115), (wx_p, wy_p), 4)
-            spoke_dx = int(math.cos(self.wheel_phase) * 5)
-            spoke_dy = int(math.sin(self.wheel_phase) * 5)
-            pygame.draw.line(surface, (45, 40, 35), (wx_p - spoke_dx, wy_p - spoke_dy), (wx_p + spoke_dx, wy_p + spoke_dy), 2)
+            pygame.draw.circle(surface, (18, 18, 22), (wx_p, wy_p), 10)
+            pygame.draw.circle(surface, (224, 178, 78), (wx_p, wy_p), 8, 2)
+            spoke_dx = int(math.cos(self.wheel_phase) * 6)
+            spoke_dy = int(math.sin(self.wheel_phase) * 6)
+            pygame.draw.line(
+                surface, (218, 174, 78), (wx_p - spoke_dx, wy_p - spoke_dy), (wx_p + spoke_dx, wy_p + spoke_dy), 2
+            )
+            pygame.draw.line(
+                surface, (218, 174, 78), (wx_p - spoke_dy, wy_p + spoke_dx), (wx_p + spoke_dy, wy_p - spoke_dx), 2
+            )
 
 
 class TileGridEngine:
     """
     Manages both:
     1. Continuous Circle-vs-Rounded-AABB Colliders (so characters roll smoothly around every corner)
-    2. 81x56 Weighted Tile Grid for fast A* pathfinding across buildings, sidewalks, and crosswalks
+    2. 81x56 Weighted Tile Grid for fast A* pathfinding across buildings, cobbles, and crosswalks
     """
 
     def __init__(self):
@@ -122,10 +151,10 @@ class TileGridEngine:
         self._build_town_matrix_and_colliders()
 
         self.vehicles = [
-            StreetVehicle(y_lane=842.0, direction=-1.0, color=(205, 68, 62), vtype="car"),
-            StreetVehicle(y_lane=842.0, direction=-1.0, color=(225, 172, 58), vtype="bus"),
-            StreetVehicle(y_lane=918.0, direction=1.0, color=(68, 135, 205), vtype="car"),
-            StreetVehicle(y_lane=918.0, direction=1.0, color=(75, 175, 118), vtype="car"),
+            StreetVehicle(y_lane=842.0, direction=-1.0, color=(158, 48, 48), vtype="car", sprite_name="car_crimson.png"),
+            StreetVehicle(y_lane=842.0, direction=-1.0, color=(188, 138, 52), vtype="bus", sprite_name="tram_amber.png"),
+            StreetVehicle(y_lane=918.0, direction=1.0, color=(52, 98, 148), vtype="car", sprite_name="car_navy.png"),
+            StreetVehicle(y_lane=918.0, direction=1.0, color=(62, 128, 88), vtype="car", sprite_name="car_emerald.png"),
         ]
         self.vehicles[0].x = 450.0
         self.vehicles[1].x = 1750.0
@@ -135,7 +164,6 @@ class TileGridEngine:
     def _build_town_matrix_and_colliders(self):
         self.colliders.clear()
 
-        # 1. Lay down Sidewalks & Roads on the A* tile grid
         for tx in range(GRID_W):
             for ty in range(GRID_H):
                 wx = tx * TILE_SIZE + TILE_SIZE // 2
@@ -145,7 +173,11 @@ class TileGridEngine:
                     self.grid[tx][ty] = T_SIDEWALK
                     self.cost[tx][ty] = 1.0
 
-                if 805 <= wy <= 955 or (825 <= wx <= 915 and not (755 <= wy <= 1005)) or (1665 <= wx <= 1755 and not (755 <= wy <= 1005)):
+                if (
+                    805 <= wy <= 955
+                    or (825 <= wx <= 915 and not (755 <= wy <= 1005))
+                    or (1665 <= wx <= 1755 and not (755 <= wy <= 1005))
+                ):
                     self.grid[tx][ty] = T_ROAD
                     self.cost[tx][ty] = 3.5
 
@@ -153,21 +185,17 @@ class TileGridEngine:
                     self.grid[tx][ty] = T_CROSSWALK
                     self.cost[tx][ty] = 1.1
 
-        # 2. Build Perimeter Wall Colliders (with wide 136px doorway gaps) & Furniture Colliders
         wall_t = 14
-        door_half_w = 68  # 136px wide doorway so characters glide through effortlessly!
+        door_half_w = 68
 
         for b in BUILDINGS:
             rx, ry, rw, rh = b["rect"]
             dx, dy = b["door_x"], b["door_y"]
 
-            # Left & Right perimeter walls
             self.colliders.append(pygame.Rect(rx, ry, wall_t, rh))
             self.colliders.append(pygame.Rect(rx + rw - wall_t, ry, wall_t, rh))
 
-            # Top & Bottom perimeter walls (split at the doorway!)
             if abs(dy - (ry + rh)) < 30:
-                # Door is on the bottom wall (Home, Cafe, Office)
                 self.colliders.append(pygame.Rect(rx, ry, rw, wall_t))
                 left_w = max(10, (dx - door_half_w) - rx)
                 right_x = dx + door_half_w
@@ -175,7 +203,6 @@ class TileGridEngine:
                 self.colliders.append(pygame.Rect(rx, ry + rh - wall_t, left_w, wall_t))
                 self.colliders.append(pygame.Rect(right_x, ry + rh - wall_t, right_w, wall_t))
             else:
-                # Door is on the top wall (School, Market, Park)
                 self.colliders.append(pygame.Rect(rx, ry + rh - wall_t, rw, wall_t))
                 left_w = max(10, (dx - door_half_w) - rx)
                 right_x = dx + door_half_w
@@ -183,15 +210,13 @@ class TileGridEngine:
                 self.colliders.append(pygame.Rect(rx, ry, left_w, wall_t))
                 self.colliders.append(pygame.Rect(right_x, ry, right_w, wall_t))
 
-            # Interior Furniture Colliders (shrunk by 10px on each side so corners are generous & easy to walk around)
             for f in b["furniture"]:
                 if "Gym Court" in f["name"]:
-                    continue  # Basketball court lines are painted on the floor, not a solid barrier!
+                    continue
                 fx, fy, fw, fh = f["rect"]
                 f_col_rect = pygame.Rect(fx + 10, fy + 10, max(16, fw - 20), max(16, fh - 20))
                 self.colliders.append(f_col_rect)
 
-            # Mark A* grid cells for building floor, perimeter walls, and wide 5-tile doorway
             x0, y0 = rx // TILE_SIZE, ry // TILE_SIZE
             x1, y1 = (rx + rw) // TILE_SIZE, (ry + rh) // TILE_SIZE
             for tx in range(max(0, x0), min(GRID_W, x1 + 1)):
@@ -203,7 +228,6 @@ class TileGridEngine:
                         self.grid[tx][ty] = T_FLOOR
                         self.cost[tx][ty] = 1.0
 
-            # Open 5-tile doorway on the A* grid
             d_tx, d_ty = dx // TILE_SIZE, dy // TILE_SIZE
             for ox in range(-2, 3):
                 for oy in range(-2, 3):
@@ -212,7 +236,6 @@ class TileGridEngine:
                         self.grid[ntx][nty] = T_DOOR
                         self.cost[ntx][nty] = 1.0
 
-        # Sync A* grid obstacles for interior furniture from self.colliders
         for tx in range(GRID_W):
             for ty in range(GRID_H):
                 if self.grid[tx][ty] in (T_WALL, T_DOOR):
@@ -223,7 +246,6 @@ class TileGridEngine:
                     self.grid[tx][ty] = T_FURNITURE
                     self.cost[tx][ty] = 999.0
 
-        # Ensure all interactive WORLD_OBJECTS have walkable A* tiles
         for wobj in WORLD_OBJECTS:
             otx = int(wobj["x"]) // TILE_SIZE
             oty = int(wobj["y"]) // TILE_SIZE
@@ -237,11 +259,9 @@ class TileGridEngine:
         return self.grid[tx][ty] not in (T_WALL, T_FURNITURE)
 
     def is_circle_free(self, wx: float, wy: float, radius: float = 11.0) -> bool:
-        """Exact continuous check against all wall & furniture colliders."""
         if wx < 42.0 or wy < 42.0 or wx > WORLD_WIDTH - 42.0 or wy > WORLD_HEIGHT - 42.0:
             return False
         for rect in self.colliders:
-            # Closest point on rect to (wx, wy)
             cx = max(float(rect.left), min(wx, float(rect.right)))
             cy = max(float(rect.top), min(wy, float(rect.bottom)))
             if (wx - cx) ** 2 + (wy - cy) ** 2 < radius * radius:
@@ -251,22 +271,17 @@ class TileGridEngine:
     def move_with_sliding(
         self, old_x: float, old_y: float, dx_step: float, dy_step: float, radius: float = 11.0
     ) -> tuple[float, float]:
-        """
-        Continuous Circle-vs-AABB Push-Out Resolution + Corner-Rounding Tangent Assist!
-        1. Moves character by (dx_step, dy_step).
-        2. Resolves any overlap with walls/tables by pushing the circle radially outward from the closest
-           point on the rectangle—meaning every corner acts like a smooth curved bumper that characters
-           roll around effortlessly!
-        3. If pushing straight into the end of a wall or table near a corner (< 26px from the edge),
-           adds a smooth tangent glide toward the open corner so you never snag.
-        """
         x = max(44.0, min(WORLD_WIDTH - 44.0, old_x + dx_step))
         y = max(44.0, min(WORLD_HEIGHT - 44.0, old_y + dy_step))
 
-        # 2 passes of continuous circle push-out resolution handle even tight L-corners cleanly
         for _ in range(2):
             for rect in self.colliders:
-                if x + radius < rect.left or x - radius > rect.right or y + radius < rect.top or y - radius > rect.bottom:
+                if (
+                    x + radius < rect.left
+                    or x - radius > rect.right
+                    or y + radius < rect.top
+                    or y - radius > rect.bottom
+                ):
                     continue
 
                 cx = max(float(rect.left), min(x, float(rect.right)))
@@ -284,10 +299,8 @@ class TileGridEngine:
                         x += nx * overlap
                         y += ny * overlap
 
-                        # Corner-Rounding Tangent Assist when walking into the edge of a table or doorway post!
                         step_mag = math.hypot(dx_step, dy_step)
                         if step_mag > 0.1:
-                            # If hitting a horizontal face near its left or right corner (< 26px), glide toward the corner!
                             if abs(ny) > 0.85 and abs(dx_step) < step_mag * 0.5:
                                 dist_left = abs(x - rect.left)
                                 dist_right = abs(x - rect.right)
@@ -295,7 +308,6 @@ class TileGridEngine:
                                     x -= step_mag * 0.65
                                 elif dist_right < 28.0:
                                     x += step_mag * 0.65
-                            # If hitting a vertical face near its top or bottom corner (< 26px), glide toward the corner!
                             elif abs(nx) > 0.85 and abs(dy_step) < step_mag * 0.5:
                                 dist_top = abs(y - rect.top)
                                 dist_bot = abs(y - rect.bottom)
@@ -304,7 +316,6 @@ class TileGridEngine:
                                 elif dist_bot < 28.0:
                                     y += step_mag * 0.65
                     else:
-                        # Center is inside rectangle: push out toward nearest edge
                         dl = abs(x - rect.left)
                         dr = abs(rect.right - x)
                         dt_edge = abs(y - rect.top)
@@ -318,6 +329,103 @@ class TileGridEngine:
                             y = float(rect.top) - radius
                         else:
                             y = float(rect.bottom) + radius
+
+        return x, y
+
+    def move_player_in_scene(
+        self,
+        old_x: float,
+        old_y: float,
+        dx_step: float,
+        dy_step: float,
+        active_scene: str = "OVERWORLD",
+        radius: float = 11.0,
+    ) -> tuple[float, float]:
+        """
+        Scene-aware continuous collision for the Player:
+        - On `"OVERWORLD"`: All 6 houses are solid 2.5D exterior building colliders (the player walks on the
+          streets, sidewalks, wynds, and courtyards outside the houses; stepping onto a doorway enters the house).
+        - Inside a building (`active_scene == building_id`): The player is bounded inside that building's
+          2.5D interior room and slides smoothly around its interior furniture.
+        """
+        if active_scene == "OVERWORLD":
+            x = max(44.0, min(WORLD_WIDTH - 44.0, old_x + dx_step))
+            y = max(44.0, min(WORLD_HEIGHT - 44.0, old_y + dy_step))
+            house_rects = [pygame.Rect(*b["rect"]) for b in BUILDINGS]
+            for _ in range(2):
+                for rect in house_rects:
+                    if (
+                        x + radius < rect.left
+                        or x - radius > rect.right
+                        or y + radius < rect.top
+                        or y - radius > rect.bottom
+                    ):
+                        continue
+                    cx = max(float(rect.left), min(x, float(rect.right)))
+                    cy = max(float(rect.top), min(y, float(rect.bottom)))
+                    vx = x - cx
+                    vy = y - cy
+                    dist_sq = vx * vx + vy * vy
+                    if dist_sq < radius * radius:
+                        dist = math.sqrt(dist_sq)
+                        if dist > 0.0001:
+                            overlap = radius - dist
+                            x += (vx / dist) * overlap
+                            y += (vy / dist) * overlap
+                        else:
+                            dl = abs(x - rect.left)
+                            dr = abs(rect.right - x)
+                            dt_edge = abs(y - rect.top)
+                            db = abs(rect.bottom - y)
+                            m = min(dl, dr, dt_edge, db)
+                            if m == dl:
+                                x = float(rect.left) - radius
+                            elif m == dr:
+                                x = float(rect.right) + radius
+                            elif m == dt_edge:
+                                y = float(rect.top) - radius
+                            else:
+                                y = float(rect.bottom) + radius
+            return x, y
+
+        # Inside a Dedicated Interior Room Scene (`active_scene == building_id`)
+        b = next((item for item in BUILDINGS if item["id"] == active_scene), None)
+        if b is None:
+            return self.move_with_sliding(old_x, old_y, dx_step, dy_step, radius=radius)
+
+        rx, ry, rw, rh = b["rect"]
+        x = max(float(rx + 26), min(float(rx + rw - 26), old_x + dx_step))
+        y = max(float(ry + 54), min(float(ry + rh - 20), old_y + dy_step))
+
+        furn_rects = []
+        for f in b["furniture"]:
+            if "Gym Court" in f["name"]:
+                continue
+            fx, fy, fw, fh = f["rect"]
+            furn_rects.append(pygame.Rect(fx + 10, fy + 10, max(16, fw - 20), max(16, fh - 20)))
+
+        for _ in range(2):
+            for rect in furn_rects:
+                if (
+                    x + radius < rect.left
+                    or x - radius > rect.right
+                    or y + radius < rect.top
+                    or y - radius > rect.bottom
+                ):
+                    continue
+                cx = max(float(rect.left), min(x, float(rect.right)))
+                cy = max(float(rect.top), min(y, float(rect.bottom)))
+                vx = x - cx
+                vy = y - cy
+                dist_sq = vx * vx + vy * vy
+                if dist_sq < radius * radius:
+                    dist = math.sqrt(dist_sq)
+                    if dist > 0.0001:
+                        overlap = radius - dist
+                        x += (vx / dist) * overlap
+                        y += (vy / dist) * overlap
+            x = max(float(rx + 26), min(float(rx + rw - 26), x))
+            y = max(float(ry + 54), min(float(ry + rh - 20), y))
 
         return x, y
 
@@ -337,7 +445,6 @@ class TileGridEngine:
         return wx, wy
 
     def find_path(self, start_x: float, start_y: float, goal_x: float, goal_y: float) -> list[tuple[float, float]]:
-        """Weighted A* Pathfinding across the 81x56 Tile Grid."""
         sx, sy = self.snap_to_nearest_walkable(start_x, start_y)
         gx, gy = self.snap_to_nearest_walkable(goal_x, goal_y)
         st = (int(sx) // TILE_SIZE, int(sy) // TILE_SIZE)
@@ -352,8 +459,14 @@ class TileGridEngine:
         visited = 0
 
         neighbors = [
-            (1, 0, 1.0), (-1, 0, 1.0), (0, 1, 1.0), (0, -1, 1.0),
-            (1, 1, 1.414), (-1, 1, 1.414), (1, -1, 1.414), (-1, -1, 1.414),
+            (1, 0, 1.0),
+            (-1, 0, 1.0),
+            (0, 1, 1.0),
+            (0, -1, 1.0),
+            (1, 1, 1.414),
+            (-1, 1, 1.414),
+            (1, -1, 1.414),
+            (-1, -1, 1.414),
         ]
 
         while open_heap and visited < 4500:

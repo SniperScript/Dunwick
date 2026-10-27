@@ -1,36 +1,58 @@
-# Maplewood Loop // 2.5D Family Time-Loop Mystery RPG
+# Chronicles of Dunwick: Defying Fate (1924)
+*A 2.5D Medieval-Steampunk 1920s British Time-Loop & Butterfly-Effect Survival RPG*
 
-A playable 2.5D psychological time-loop detective RPG built with `pygame-ce` and `numpy`, featuring **4 playable members of the Mercer Family** (`Arthur`, `Elena`, `Maya`, and `Leo`) and **20 autonomous neighborhood NPCs** living out a `5:00 PM` to `6:00 PM` afternoon routine across 6 town buildings.
+Set in **Dunwick-on-Severn (Anno Domini 1924)**—a 14th-century Norman stone and Tudor half-timbered British market borough retrofitted with 1920s brass steam-carriages, pneumatic telegraphs, Victorian gaslamps, and the towering **Imperial Aether-Boiler**.
 
-## Open-Source Architectural Blueprints Integrated
+---
 
-1. **Tiny Life (`Ellpeck/TinyLife`) — Multi-Character Household & Daily Schedules**:
-   - Switch seamlessly in real time between **Arthur (`[1]`)**, **Elena (`[2]`)**, **Maya (`[3]`)**, and **Leo (`[4]`)** without resetting the loop.
-   - Inactive family members and all 20 townspeople follow a `5:00 PM` to `6:00 PM` schedule, commuting across buildings (including the secret **Saboteur**, who physically walks to the Market around `5:16 PM`, passes the Sunrise Cafe around `5:32 PM`, and sneaks toward the Power Room at `5:44 PM`).
-   - 2D tile matrix object interactions and `YSort` depth sorting (`main.py`, `skeletal_engine.py`).
+## Core Design Pillars
 
-2. **IsoCity (`victorqribeiro/isocity`) — Weighted Tile-Grid A* Navigation & Street Traffic**:
-   - `TileGridEngine` (`tile_grid_engine.py`) models an `81x56` tile matrix (`TILE_SIZE = 32`) with grass, sidewalks, asphalt roads, pedestrian crosswalks, wide 5-tile open doorways, perimeter walls, and furniture footprints.
-   - Sub-tile movement with automatic corner-rounding (`move_with_sliding`) guarantees smooth walking through doorways and around furniture.
-   - Moving `StreetVehicle` cars and buses drive along Main Street and automatically yield when pedestrians use the crosswalks.
+### 1. Three Playable Scenarios of Predetermined Fate (`[F1]`–`[F3]`)
+At the start of a campaign, choose which cosmic decree you are fighting against across a full **7-Day Week (Monday through Sunday)**:
+1. **Scenario I — The Doomsday Clock ("The World Will End")**:
+   - The Imperial Aether-Boiler & Ley-Line Anchor beneath the Clocktower Foundry is fated to rupture and vaporize the world.
+   - Foiling Day 1's brass pressure relay causes a **Butterfly Effect**: Day 2 backs coal-gas into the Guildhall Bazaar cellars; Day 3 arcs St. Dunstan's galvanic coils; Day 4 superheats the Brass Kettle steam-urns; Day 5 triggers a Ministry lockdown; Day 6 seizes the Clocktower pendulum; Day 7 brings the Grand Harmonic Convergence.
+2. **Scenario II — The Grim Decree ("You Are Going to Die")**:
+   - Predetermined Fate has marked **YOU** for death. Every day you survive twists the causal web into a new lethal hazard:
+   - *Monday*: Poisoned Earl Grey draught at The Brass Kettle -> *Tuesday*: Runaway Steam-Lorry brake failure on High Street -> *Wednesday*: Choking & suffocation on a hurried plate of spiced mutton pie -> *Thursday*: Falling 300-pound medieval stone gargoyle -> *Friday*: 10,000-volt Galvanic capacitor arc -> *Saturday*: Silent coal-damp flue leak in Ashford Manor -> *Sunday*: The Reaper's Seventh Bell.
+3. **Scenario III — The Thread of Fate ("Your Loved One Is Going to Die")**:
+   - Someone you cherish (`Arthur -> Lady Elena`, `Elena -> Young Leo`, `Maya -> Chloe`, `Leo -> Sister Maya`) is marked by Fate to die.
+   - *Monday*: Clockwork Assassination outside the Teahouse -> *Tuesday*: Shifting their schedule puts them directly into a **Runaway Steam-Carriage Crash** on High Street -> *Wednesday*: Rattled by Tuesday's near-miss, they bolt down lunch and risk **Choking / Suffocating on a Plate of Spiced Mutton Pie** -> *Thursday*: Scalding Steam-Manifold Burst -> *Friday*: Mislabeled Belladonna Tincture at the Apothecary -> *Saturday*: Crumbling Gargoyle Masonry -> *Sunday*: Severing the Fatal Thread.
+   - **Only by protecting them across all 7 Days (an entire week) is Fate's grip permanently broken!**
 
-3. **Unknown Horizons (`unknown-horizons/unknown-horizons`) — Cross-Zone State Persistence**:
-   - `SimulationWorld.zone_state` (`simulation_world.py`) routes persistent actions across zones:
-     - **Mercer Home Research Terminal** syncs anomaly timing notes to your Case File.
-     - **Town Market Hardware & Chemical Register** logs the restricted sabotage item and flags the buyer.
-     - **High School Science Scanner** calibrates the trace frequency and unlocks the **Town Office Security Mainframe**.
-     - **Police Evidence & Dispatch Terminal / Chief Miller** in the **Town Park** detains the Saboteur once you seize physical evidence and radios **Guard Hank** to open the **Town Office Power Room**.
+### 2. The "Sole Knower" Law & Real Human Psychology
+- You select **1 of the 4 members of the Ashford-Mercer Family** (`Lord Arthur`, `Lady Elena`, `Maya`, or `Leo`).
+- **ONLY your chosen character remembers the time loop and knows what is coming!** Even the other three members of your own family are unawakened 1920s humans going about their week.
+- **Composure & Credibility Meter (`0–100%`)**: If you run around screaming about "time loops" or "the end of the world" without grounding your warnings in plausible 1924 concerns or physical evidence, townsfolk—and your own family—will think you have contracted **Galvanic Delirium** and have Chief Inspector Miller & Sister Joya confine you!
+- Instead, treat every character as a real human: observe their **Daily Behavioral Micro-Tells** (e.g., checking a tarnished pocket-watch, clutching an oilcloth parcel, rushing before the tram bell), share a calming cup of **Earl Grey**, and intervene subtly.
 
-4. **IslandEscape — Per-Character Relationship & Grudge Memory Tables**:
-   - Every NPC maintains an individual relationship score (`0–100%`) and grudge set for each of the 4 Mercer family members (`Arthur`, `Elena`, `Maya`, `Leo`).
-   - **False Accusation Consequence**: Confronting/accusing an innocent NPC causes them to form a **Grudge** against that family member, refusing further cooperation unless you switch to another family member (`[1–4]`), offer a **Warm Espresso** from the Sunrise Cafe, or awaken their cross-loop memory with a **Deja-Vu Pulse (`[R]`)**.
+### 3. Why It Can Never Be "Solved" (Dynamic Permutation & AI Subconscious Echoes)
+- **Procedural Butterfly Permutation**: Every loop and every day dynamically permutes which NPC is the unwitting catalyst, which witness noticed the tell, how NPC schedules shift, and how your previous day's intervention style ripples into tomorrow.
+- **Subconscious Dream Echoes (`vector_memory.py` + `cloud_llm_broker.py`)**: When a loop resets after a death or disaster, NPCs retain faint `[SUBCONSCIOUS DREAM]` vector engrams of the previous loop's tragedy, causing their mood, small-talk, and AI responses to evolve on every single loop.
+- **Four Distinct Ways to Foil Every Threat**:
+  1. **Physical / Station Disarmament**: Inspect and disarm the hazard at its 2.5D steampunk station.
+  2. **Human Schedule Redirection**: Persuade the catalyst or your Loved One to alter their afternoon routine.
+  3. **Specialist / Authority Proxy**: Alert the right borough specialist (`Sister Joya`, `Chief Stoker Raj`, `Inspector Miller`, `Constable Rosa`, `Apothecary Lin`, `Professor Clarke`) once you have a concrete observation.
+  4. **Aether-Premonition Awakening (`[R]`)**: Awaken a vivid flash of foresight in a key NPC.
 
-5. **OpenPixel-RPG — Starting Lore Prologue & Bottom RPG Dialogue Box**:
-   - Selecting a character opens the **Starting Lore Prologue (`LORE_PROLOGUE`)** screen detailing the 6:00 PM Aether-Core anomaly and that character's personal perspective and specialty.
-   - Classic bottom RPG dialogue window with a framed `135x135` character bust portrait, animated talking expression, relationship badge, and typewriter-revealed dialogue.
+---
+
+## Controls
+
+- **`[WASD]` / `[Arrow Keys]`**: Walk across 1924 Dunwick-on-Severn (Overworld & Interior Rooms)
+- **`[E]` / `[SPACE]` / Walk into Doorway**:
+  - **At a House Front Door (on Overworld)**: Enter the building and switch the scene to its dedicated **2.5D Cutaway Interior Room** (showing the people and stations inside that building!)
+  - **At an Interior Exit Door (or press `[BACKSPACE]` / `[ESC]`)**: Step back outside onto the **Dunwick-on-Severn Overworld**
+  - **Near a Person or Steampunk Station**: Converse with NPCs or inspect interactive stations
+- **`[G]`**: Advance to the Next Day of the 7-Day Week (once today's Fate Vector is foiled!)
+- **`[N]`**: Open your **Foresight Journal & 7-Day Butterfly Web**
+- **`[F]`**: Open the **Scenario (`[F1–F3]`) & Family Protagonist (`[1–4]`) Selector**
+- **`[R]`** *(in dialogue)*: Trigger an **Aether-Premonition** in the NPC
+- **`[T]`** *(in dialogue)*: Speak custom free-form text to the AI NPC
+- **`[K]`**: Configure optional Google Gemini / OpenAI API Key
 
 ## Running the Game
 
 ```bash
-"/home/xczn/Documents/Coding backup/INVENTIONS ahh/.venv/bin/python" "/home/xczn/Documents/Coding backup/INVENTIONS ahh/Game?/main.py"
+./run_game.sh
 ```

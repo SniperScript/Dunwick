@@ -1,0 +1,13 @@
+{
+  "display_mode": "FULLSCREEN",
+  "darkness_vignette": "BLOODBORNE_DARK",
+  "atmospheric_particles": true,
+  "target_fps": 60,
+  "master_volume": 80,
+  "sfx_volume": 75,
+  "ambient_bells": true,
+  "typewriter_speed": "NORMAL",
+  "camera_smoothing": "SMOOTH",
+  "lethal_traffic": true,
+  "ai_provider": "gemini"
+}

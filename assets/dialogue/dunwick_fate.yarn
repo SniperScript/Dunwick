@@ -1,0 +1,249 @@
+title: Root_Dialogue_Router
+---
+<<if $npc_id == "sal">>
+    <<jump Sal_Node>>
+<<elseif $npc_id == "mia">>
+    <<jump Mia_Node>>
+<<elseif $npc_id == "rosa">>
+    <<jump Rosa_Node>>
+<<elseif $npc_id == "joya">>
+    <<jump Joya_Node>>
+<<elseif $npc_id == "miller">>
+    <<jump Miller_Node>>
+<<elseif $npc_id == "clarke">>
+    <<jump Clarke_Node>>
+<<elseif $npc_id == "elena">>
+    <<jump Elena_Node>>
+<<elseif $npc_id == "arthur">>
+    <<jump Arthur_Node>>
+<<elseif $npc_id == "maya">>
+    <<jump Maya_Node>>
+<<elseif $npc_id == "leo">>
+    <<jump Leo_Node>>
+<<else>>
+    <<jump Generic_Citizen_Node>>
+<<endif>>
+===
+
+title: Sal_Node
+tags: teahouse proprietor
+---
+<<if loop() > 1>>
+    Sal: By the saints, {$player_name}... I woke up before the coal-fires were lit with a terrible chill in my chest. A vision of someone choking on aconite tea right at my counter!
+<<else>>
+    Sal: Welcome to The Brass Kettle, {$player_name}! Fresh Darjeeling is brewing, and the copper steam-urn is roaring merrily.
+<<endif>>
+<<if day() == 1>>
+    Sal: Odd thing, though... an apothecary runner left a sealed porcelain cup labeled for you earlier. Smells peculiar—like bitter almonds and dried aconite leaves.
+    -> "Sal, do NOT serve that cup! It's laced with lethal poison!" <<if loop() >= 1>>
+        Sal: Good heavens! Poison in my establishment?! Let me lock that cup in the iron safe at once!
+        <<set $threat_foiled = true>>
+        <<set $credibility += 15>>
+    -> "Pour me a fresh, untampered cup of Earl Grey instead."
+        Sal: Right away, {$player_name}. Steaming hot and pure as rain. Here you are!
+        <<set $has_warm_tea = true>>
+    -> "Tell me who delivered that sealed porcelain cup."
+        Sal: It was Lin from the Guildhall Apothecary. Said someone paid three sovereigns for prompt delivery!
+        <<set $threat_deduced = true>>
+<<elseif day() == 2>>
+    Sal: Mind the High Street cobbles today, {$player_name}! A heavy steam-lorry rattled past shaking my teacups so hard the saucers chipped. Sounded like its brake cotter-pin was rattling loose!
+    -> "I noticed that grinding noise too—who was driving?"
+        Sal: Young Zack from the ironmonger's yard. He was rushing deliveries like the devil was chasing him.
+        <<set $threat_deduced = true>>
+    -> "I need to inspect that lorry before someone gets crushed."
+        Sal: Rosa is down by the Market forge; she's the only mechanic in Dunwick who can forge a replacement brake-pin!
+<<elseif day() == 3>>
+    Sal: Crown Bakehouse brought over the afternoon spiced mutton pies. Thick suet crust today—Chef Martha says the marrow bone splintered during butchering. Mind how you chew!
+    -> "A bone splinter in the suet crust? That could suffocate a man!"
+        Sal: Bless my soul, you're right. I'll take a carving blade to every single portion before plating!
+        <<set $threat_foiled = true>>
+    -> "I'll take only hot water and biscuits today, Sal."
+        Sal: Wise caution. Better safe than coughing your lungs out.
+<<else>>
+    Sal: The borough feels heavy this afternoon, {$player_name}. Keep your wits about you.
+    -> "Thank you, Sal. Keep your doors safe."
+===
+
+title: Mia_Node
+tags: teahouse server
+---
+<<if loop() > 1>>
+    Mia: Good afternoon, {$player_name}! Isn't it strange? I dreamt last night that a runaway steam-lorry smashed straight through the front windows!
+<<else>>
+    Mia: Hullo! The parlour tables are wiped clean, though the steam pressure in the pipes has been pulsing all afternoon.
+<<endif>>
+<<if day() == 1>>
+    Mia: Someone asked me to set table three for you specifically. The porcelain teacup was already placed there before I started my shift.
+    -> "Mia, please don't touch that cup—it contains bitter almond aconite!"
+        Mia: Eek! Poison?! Oh Lord Arthur, I'll pour it down the brass drain immediately!
+        <<set $threat_foiled = true>>
+    -> "Did you see who arranged that specific table?"
+        Mia: A gentleman in a dark Inverness cape. He left before I could offer him a biscuit.
+        <<set $threat_deduced = true>>
+<<else>>
+    Mia: Let me know if you need fresh hot water or a restorative chamomile brew!
+    -> "Thank you, Mia. Stay vigilant."
+<<endif>>
+===
+
+title: Rosa_Node
+tags: mechanic ironmonger
+---
+Rosa: Wipe your boots, friend—sparks and machine oil don't mix with fine wool coats.
+<<if day() == 2>>
+    Rosa: Look at this cracked cotter-pin! I told the haulage guild three days ago that their steam-lorry was a runaway hearse waiting to happen! If that 4-ton brass boiler loses pressure on the High Street slope, God help whoever is in the crosswalk!
+    -> "I have the forged iron replacement pin right here! Let's clamp it into the brake drum!" <<if has_item("Forged Iron Brake-Pin")>>
+        Rosa: By Vulcan's hammer, that's the exact tensile gauge! Hand it over—clamping the brake caliper now! High Street is safe!
+        <<set $threat_foiled = true>>
+        <<set $credibility += 20>>
+    -> "Where is the lorry parked right now?"
+        Rosa: Just outside the Guildhall Bazaar unloading crates. You have less than twenty minutes before Zack fires up the furnace!
+        <<set $threat_deduced = true>>
+    -> "Can you forge an emergency clamp for me?"
+        Rosa: Take this heavy Sapper's Shoring Clamp from my bench. It'll secure masonry or steam valves in a pinch!
+        <<set $held_item = "Sapper's Shoring Clamp">>
+<<else>>
+    Rosa: Keep an eye on the overhead stonework and steam joints. Dunwick's medieval foundations weren't built for 1920s high-pressure boilers.
+    -> "Sound advice, Rosa."
+<<endif>>
+===
+
+title: Joya_Node
+tags: parish sister medic
+---
+Sister Joya: Peace be with you, {$player_name}. In these troubled times, many in Dunwick are afflicted with frayed nerves and sudden terrors.
+<<if loop() > 1>>
+    Sister Joya: I have felt a curious spiritual turbulence... as though we have walked these same flagstones in another life, grieving a tragedy that has not yet occurred.
+<<endif>>
+<<if day() == 3>>
+    Sister Joya: Beware of rapid eating at the taverns. Three laborers choked on unboned suet pie this week alone! One nearly perished before I applied thoracic compression.
+    -> "Sister Joya, teach me your thoracic airway maneuver!"
+        Sister Joya: Stand behind them, clasp your hands firmly between navel and ribcage, and thrust upward with sudden force. Take this sterile Triage Kit and airway tube—it may save your life!
+        <<set $held_item = "Sister Joya's Triage Kit">>
+        <<set $threat_deduced = true>>
+    -> "Have you noticed any tainted food deliveries?"
+        Sister Joya: The Crown Bakehouse was using flour from damp grain stores. The crusts bake as hard as cobblestones.
+<<elseif day() == 1>>
+    Sister Joya: If you ever ingest a suspect substance, activated apothecary charcoal draught will absorb the alkaloids before they reach the bloodstream! Here, take a vial.
+    <<set $held_item = "Apothecary Charcoal Draught">>
+<<else>>
+    Sister Joya: May divine Providence preserve you from harm today.
+    -> "Amen, Sister Joya. Thank you."
+<<endif>>
+===
+
+title: Miller_Node
+tags: scotland yard inspector
+---
+Chief Inspector Miller: Afternoon, {$player_name}. Scotland Yard has its hands full keeping the peace between the trades guilds and the Ministry.
+<<if loop() > 1>>
+    Miller: Odd thing... I filed a report this morning, and had the uncanny feeling I'd signed the exact same parchment seven days ago with the same black ink.
+<<endif>>
+<<if $credibility < 40>>
+    Miller: You look restless, {$player_name}. The constables have orders to detain anyone causing public panic over 'supernatural omens'. Keep your composure, or I'll have you rested in the cells!
+<<else>>
+    Miller: Your family's standing in Dunwick is well respected. If you uncover genuine criminal tampering or unsafe boiler valves, notify my dispatch immediately.
+<<endif>>
+-> "Inspector, station a constable at the High Street crosswalk!" <<if day() == 2>>
+    Miller: Very well. Jenkins! Take the intersection and clear civilian pedestrians until the haulage wagons pass!
+    <<set $threat_foiled = true>>
+    <<set $credibility += 10>>
+-> "Inspector, I suspect someone is trying to arrange a fatal 'accident'."
+    Miller: Bring me tangible evidence—tampered cotter-pins, poisoned vials, or signed manifests. We deal in hard British facts, not ghostly premonitions.
+===
+
+title: Clarke_Node
+tags: polytechnic professor alchemist
+---
+Professor Clarke: Ah, {$player_name}! Do not touch that copper terminal! The galvanic induction dynamo is holding twenty thousand volts of pure Aetheric potential!
+<<if day() == 5>>
+    Professor Clarke: The earthing rod is missing from the bench. If someone were to step across that damp flagstone while wearing uninsulated boots, the arc would jump six feet straight to their breastbone!
+    -> "Professor, here is the Rubberized Earthing Rod! Grounding the capacitor now!" <<if has_item("Rubberized Earthing Rod")>>
+        Professor Clarke: Great heavens, splendid reflexes! *SNAP* Look at that harmless blue spark sink into the earth. You just prevented a fatal electrocution!
+        <<set $threat_foiled = true>>
+        <<set $credibility += 25>>
+    -> "Where did the earthing rod go?"
+        Professor Clarke: Young Higgins borrowed it to clear a jammed flue in the basement! The reckless boy left the entire lab live!
+        <<set $threat_deduced = true>>
+<<else>>
+    Professor Clarke: Science in 1924 marches boldly into the mysteries of the atom and the aether. But remember: nature always demands thermodynamic balance.
+    -> "Thank you, Professor. Keep the grounding switches down."
+<<endif>>
+===
+
+title: Elena_Node
+tags: family mother journalist
+---
+<<if $player_id == "elena">>
+    Elena: (My own thoughts: I carry the weight of this week alone. Arthur, Maya, and Leo know nothing of the impending doom. I must protect us all.)
+<<else>>
+    Lady Elena: Hullo, my dear! You look terribly strained today. Have you been drinking enough water, or are you fretting over the Ministry reports again?
+    <<if loop() > 1>>
+        Lady Elena: I had the most distressing nightmare last night... I saw you lying motionless on the cobblestones surrounded by shards of porcelain. Please promise me you will be careful today.
+    <<endif>>
+    -> "Mother, did you interview anyone at the Guildhall Bazaar this morning?"
+        Lady Elena: Yes, the ironmonger Zack seemed unusually frantic, babbling about a rush shipment of boiler parts. His hands were shaking terribly.
+        <<set $threat_deduced = true>>
+    -> "I'm quite alright, Mother. Just taking in the afternoon air."
+        Lady Elena: Come home to the Manor before the six o'clock chimes. Cook is roasting lamb.
+<<endif>>
+===
+
+title: Arthur_Node
+tags: family father architect
+---
+<<if $player_id == "arthur">>
+    Arthur: (My own thoughts: The burden of the Sole-Knower is heavy. The town goes about its business unaware that Fate has drawn a circle of death around us. I must outthink Destiny.)
+<<else>>
+    Lord Arthur: Afternoon! I am just reviewing the pneumatic valve blueprints for the Clocktower Foundry. The steam pressure in the eastern district is climbing abnormally fast.
+    <<if loop() > 1>>
+        Lord Arthur: I woke up feeling as though I had already lived this Monday once before. An unsettling mathematical symmetry, like a clockwork pendulum swinging backwards.
+    <<endif>>
+    -> "Father, can you authorize an emergency override for the steam-lines?"
+        Lord Arthur: If you suspect a catastrophic pressure build-up, take my Lord Architect's Spanner. It fits every brass valve manifold in Dunwick.
+        <<set $held_item = "Lord Architect's Spanner">>
+    -> "Be careful around the Foundry today, Father."
+        Lord Arthur: Always, my child. The laws of steam and steel are unforgiving.
+<<endif>>
+===
+
+title: Maya_Node
+tags: family daughter scholar
+---
+<<if $player_id == "maya">>
+    Maya: (My own thoughts: My chemical sensors and galvanic detectors are our only salvation. Fate thinks it can strike us down, but science will break the loop!)
+<<else>>
+    Maya: Hey! Look at this reagent test—the pH in the borough water pipes is completely normal, but there's an odd alkaloid trace near the Teahouse cistern.
+    -> "Maya, can you test this substance for bitter almond aconite?"
+        Maya: Hand it here! *fizz* Good heavens—it turned vivid crimson! That's wolfsbane aconite, lethal in seconds! Where did you find this?!
+        <<set $threat_deduced = true>>
+    -> "What are you and Chloe working on?"
+        Maya: We are calibrating an Aether-Tuning resonator to detect sudden micro-seismic shifts in the masonry!
+<<endif>>
+===
+
+title: Leo_Node
+tags: family son scout
+---
+<<if $player_id == "leo">>
+    Leo: (My own thoughts: Nobody listens to an 11-year-old, but I'm faster than any steam-lorry! I'll dodge Fate and save my family!)
+<<else>>
+    Leo: Look what I found by the gargoyle fountain! A brass cotter-pin with grease all over it! I saw it drop off that big steam-lorry when it bumped over the gutter!
+    -> "Leo! Give me that cotter-pin right now!"
+        Leo: Here! Catch! Why are you so excited about an old piece of rusty iron?
+        <<set $held_item = "Forged Iron Brake-Pin">>
+        <<set $threat_deduced = true>>
+    -> "Stay out of the street, Leo! It's dangerous today!"
+        Leo: Aw, I'm faster than any old lorry! But alright, I'll go play near the fountain instead.
+<<endif>>
+===
+
+title: Generic_Citizen_Node
+tags: citizen
+---
+Citizen: Afternoon! Fine British weather today, though the clouds over the Severn look a bit ominous.
+-> "Have you noticed anything unusual in town today?"
+    Citizen: Just the usual hubbub—steam carriages rattling, bakers yelling, and pigeons fluttering on the church gargoyles.
+-> "Good day to you."
+===
+

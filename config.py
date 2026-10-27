@@ -1,9 +1,21 @@
 """
-Configuration for MAPLEWOOD CHRONICLES:
-- Clean, Simple Plain-English Interface (No background image clutter, no missing emoji glyphs)
-- Playable Family of 4 (Dad Arthur, Mom Elena, Sister Maya, Brother Leo)
-- 20 Lively Neighborhood NPCs (24 total characters across Home, School, Office, Cafe, Market, Park/Police)
-- Dynamic 5-Chapter Mystery Progression that changes suspects & codes every campaign!
+Configuration for CHRONICLES OF DUNWICK: DEFYING FATE (1924)
+A 2.5D Medieval-Steampunk 1920s British Time-Loop & Butterfly-Effect Survival RPG.
+
+Core Pillars:
+1. THREE SCENARIOS OF FATE:
+   - Scenario 1 ("WORLD_END"): The Imperial Aether-Boiler & Ley-Line will rupture and end the world.
+   - Scenario 2 ("SELF_DEATH"): Fate has marked YOU for death through a relentless 7-day Butterfly Effect.
+   - Scenario 3 ("LOVED_ONE"): Fate has marked your Loved One/Friend for death (Assassination -> Steam-Carriage
+     Crash -> Choking on Food -> Boiler Valve Burst -> Nightshade Tincture -> Gargoyle Collapse -> Final Reckoning).
+2. SOLE-KNOWER ISOLATION:
+   - You choose 1 of the 4 members of the Ashford-Mercer Family (Arthur, Elena, Maya, Leo).
+   - ONLY the character you play as remembers the loops and knows the impending doom! Even your own family
+     members are oblivious humans living their daily lives.
+3. NON-REPETITIVE BUTTERFLY ENGINE:
+   - Protecting the target for an entire 7-Day Week (Monday to Sunday) is required to break Fate's hold.
+   - Every intervention mutates the causal web for the next day, and every loop permutes catalysts, moods,
+     and conversational tells so the game can NEVER be 'solved' by rote memorization.
 """
 
 import os
@@ -12,36 +24,75 @@ import json
 SCREEN_WIDTH = 1360
 SCREEN_HEIGHT = 860
 FPS = 60
-TITLE = "MAPLEWOOD LOOP // Family Time-Loop Mystery RPG"
+TITLE = "CHRONICLES OF DUNWICK (1924) // 7-Day Butterfly-Effect Time-Loop RPG"
 
-# Spacious, uncluttered town dimensions (Camera smoothly follows your character)
+# Spacious 2.5D Borough of Dunwick-on-Severn
 WORLD_WIDTH = 2600
 WORLD_HEIGHT = 1800
 
-# 4 minutes per loop so you have plenty of time to explore, talk, and investigate across chapters
-LOOP_DURATION_SECONDS = 240.0
+# Each day of the 7-day week runs a 90-second afternoon/evening crisis window (or press [G] once foiled!)
+DAY_DURATION_SECONDS = 95.0
+LOOP_DURATION_SECONDS = DAY_DURATION_SECONDS  # Alias for compatibility
+TOTAL_DAYS_IN_WEEK = 7
+
+WEEK_DAYS = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+]
 
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "llm_config.json")
+SETTINGS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings_config.json")
 
+DEFAULT_SETTINGS = {
+    "display_mode": "FULLSCREEN",
+    "darkness_vignette": "BLOODBORNE_DARK",
+    "atmospheric_particles": True,
+    "target_fps": 60,
+    "master_volume": 80,
+    "sfx_volume": 75,
+    "ambient_bells": True,
+    "typewriter_speed": "NORMAL",
+    "camera_smoothing": "SMOOTH",
+    "lethal_traffic": True,
+    "ai_provider": "gemini",
+}
+
+# 1920s British Medieval-Steampunk Palette (Gaslight Amber, Tarnished Brass, Prussian Velvet, Cobblestone Slate)
 COLORS = {
-    "grass": (68, 122, 74),
-    "grass_patch": (58, 108, 64),
-    "road": (72, 76, 86),
-    "road_line": (235, 205, 90),
-    "sidewalk": (182, 180, 174),
-    "water": (75, 165, 225),
-    "ui_dark": (18, 22, 32),
-    "ui_panel": (26, 32, 46),
-    "ui_card": (36, 44, 62),
-    "ui_border": (225, 185, 95),
-    "ui_border_soft": (90, 108, 140),
-    "gold": (255, 215, 75),
-    "cyan": (85, 220, 255),
-    "green": (80, 230, 140),
-    "red": (255, 85, 95),
-    "white": (248, 248, 245),
-    "text_dim": (185, 192, 208),
-    "text_muted": (125, 134, 152),
+    "grass": (62, 104, 64),
+    "grass_patch": (50, 88, 54),
+    "road": (68, 66, 72),
+    "road_line": (218, 178, 82),
+    "sidewalk": (168, 160, 148),
+    "water": (58, 138, 178),
+    "ui_dark": (16, 18, 26),
+    "ui_panel": (24, 26, 38),
+    "ui_card": (34, 36, 52),
+    "ui_border": (218, 172, 78),
+    "ui_border_soft": (102, 92, 78),
+    "gold": (242, 198, 82),
+    "brass": (208, 154, 62),
+    "cyan": (105, 218, 235),
+    "green": (92, 222, 142),
+    "red": (238, 82, 82),
+    "crimson": (175, 42, 52),
+    "blood_dark": (28, 8, 12),
+    "blood_crimson": (142, 28, 38),
+    "blood_bright": (195, 38, 48),
+    "gothic_charcoal": (10, 11, 15),
+    "gothic_slate": (16, 18, 24),
+    "gothic_panel": (22, 25, 34),
+    "gothic_border": (74, 68, 62),
+    "purple": (185, 128, 242),
+    "white": (245, 240, 228),
+    "parchment": (236, 224, 198),
+    "text_dim": (188, 182, 170),
+    "text_muted": (128, 122, 114),
 }
 
 
@@ -76,622 +127,687 @@ def save_llm_config(cfg):
 
 
 # ==============================================================================
-# 6 CLEAN NEIGHBORHOOD BUILDINGS (Connected by Main Street at y=800..980)
+# THE 3 FATE SCENARIOS (Selectable Game Modes)
+# ==============================================================================
+SCENARIO_MODES = {
+    "WORLD_END": {
+        "id": "WORLD_END",
+        "short_title": "SCENARIO I: THE DOOMSDAY CLOCK",
+        "subtitle": "The World Is Going to End",
+        "badge_color": (238, 82, 82),
+        "summary": (
+            "Beneath the medieval cobbles of Dunwick-on-Severn, the High-Pressure Central Steam-Boiler "
+            "and Municipal Coal-Gas Network is fated to rupture, demolishing the borough and collapsing "
+            "the Town Clocktower. ONLY YOU remember the cataclysm. Every time you avert one mechanical "
+            "or structural trigger, the Butterfly Effect shifts the strain across all 7 days of the week."
+        ),
+        "victory_condition": "Prevent the High-Pressure Boiler Cataclysm across all 7 Days (Monday through Sunday).",
+    },
+    "SELF_DEATH": {
+        "id": "SELF_DEATH",
+        "short_title": "SCENARIO II: THE GRIM DECREE",
+        "subtitle": "You Are Going to Die",
+        "badge_color": (185, 128, 242),
+        "summary": (
+            "You witnessed your own death in a clockwork premonition. Predetermined Fate has marked YOU "
+            "to die. If you dodge a poisoned cup of Earl Grey on Monday, Fate swerves a runaway steam-lorry "
+            "at you on Tuesday, drops a medieval stone gargoyle on Wednesday, or arcs a galvanic coil on "
+            "Thursday. Outwit Destiny for 7 consecutive days to shatter your death mark!"
+        ),
+        "victory_condition": "Defy your predetermined death across all 7 Days without losing your life or sanity.",
+    },
+    "LOVED_ONE": {
+        "id": "LOVED_ONE",
+        "short_title": "SCENARIO III: THE THREAD OF FATE",
+        "subtitle": "Your Loved One Is Going to Die",
+        "badge_color": (105, 218, 235),
+        "summary": (
+            "Someone you love deeply is marked by Fate to die this week. Save them from an assassination on "
+            "Monday, and the Butterfly Effect puts them in the path of a runaway steam-carriage crash on "
+            "Tuesday; save them from that, and they may choke and suffocate on a plate of spiced mutton pie "
+            "on Wednesday! Protect them across an entire 7-day week without making them think you are mad."
+        ),
+        "victory_condition": "Keep your Loved One alive across all 7 Days as Fate escalates its Butterfly chain.",
+    },
+}
+
+# Default Loved One mapping per protagonist for Scenario 3 (each family member protects someone dear to them)
+PROTAGONIST_LOVED_ONE = {
+    "arthur": {
+        "target_id": "elena",
+        "relation": "Your Beloved Wife, Lady Elena",
+        "bond_desc": "Elena's fearless Fleet Street inquiries have placed her in the crosshairs of Fate.",
+    },
+    "elena": {
+        "target_id": "leo",
+        "relation": "Your Youngest Son, Leo (11)",
+        "bond_desc": "Leo's reckless curiosity across the cobblestones of Dunwick draws lethal danger at every turn.",
+    },
+    "maya": {
+        "target_id": "chloe",
+        "relation": "Your Best Friend & Lab Partner, Chloe",
+        "bond_desc": "Chloe shares every afternoon with you between St. Dunstan's Polytechnic and the Brass Kettle.",
+    },
+    "leo": {
+        "target_id": "maya",
+        "relation": "Your Older Sister, Maya (17)",
+        "bond_desc": "Maya always looks out for you—now only you saw the vision of her untimely demise.",
+    },
+}
+
+
+# ==============================================================================
+# 6 MEDIEVAL-STEAMPUNK 1920s BRITISH BOROUGH LANDMARKS
 # ==============================================================================
 BUILDINGS = [
     {
         "id": "home",
-        "name": "MERCER FAMILY HOME",
+        "name": "ASHFORD-MERCER TUDOR MANOR",
         "rect": (120, 120, 660, 620),
-        "floor_color": (225, 198, 162),
-        "roof_color": (185, 75, 65),
+        "floor_color": (198, 168, 132),
+        "roof_color": (148, 58, 48),
         "door_x": 450,
         "door_y": 740,
         "furniture": [
-            {"rect": (160, 190, 220, 60), "color": (135, 90, 60), "name": "Kitchen Counter"},
-            {"rect": (480, 200, 220, 95), "color": (85, 125, 165), "name": "Living Room Sofa"},
-            {"rect": (160, 480, 180, 110), "color": (110, 120, 135), "name": "Family Study Desk"},
+            {"rect": (160, 190, 220, 60), "color": (122, 78, 48), "name": "Victorian Coal-Range & Pantry"},
+            {"rect": (480, 200, 220, 95), "color": (118, 48, 58), "name": "Chesterfield Parlour Sofa"},
+            {"rect": (160, 480, 180, 110), "color": (96, 76, 58), "name": "Brass Orrery & Study Desk"},
         ],
     },
     {
         "id": "cafe",
-        "name": "SUNRISE CAFE & PARLOR",
+        "name": "THE BRASS KETTLE TEAHOUSE",
         "rect": (960, 120, 660, 620),
-        "floor_color": (238, 220, 222),
-        "roof_color": (215, 95, 135),
+        "floor_color": (218, 198, 178),
+        "roof_color": (168, 72, 88),
         "door_x": 1290,
         "door_y": 740,
         "furniture": [
-            {"rect": (1020, 190, 360, 65), "color": (195, 80, 115), "name": "Coffee & Ice Cream Bar"},
-            {"rect": (1040, 380, 110, 90), "color": (215, 175, 145), "name": "Cafe Table 1"},
-            {"rect": (1360, 380, 110, 90), "color": (215, 175, 145), "name": "Cafe Table 2"},
+            {"rect": (1020, 190, 360, 65), "color": (164, 92, 58), "name": "Copper Steam-Urn & Tea Bar"},
+            {"rect": (1040, 380, 110, 90), "color": (152, 108, 72), "name": "Teahouse Table 1"},
+            {"rect": (1360, 380, 110, 90), "color": (152, 108, 72), "name": "Teahouse Table 2"},
         ],
     },
     {
         "id": "office",
-        "name": "TOWN OFFICE & POWER ROOM",
+        "name": "BOROUGH FOUNDRY & CLOCKTOWER",
         "rect": (1800, 120, 680, 620),
-        "floor_color": (188, 202, 218),
-        "roof_color": (65, 105, 160),
+        "floor_color": (168, 174, 184),
+        "roof_color": (58, 78, 112),
         "door_x": 2140,
         "door_y": 740,
         "furniture": [
-            {"rect": (1850, 200, 220, 65), "color": (85, 105, 135), "name": "Reception Desk"},
-            {"rect": (1850, 420, 200, 80), "color": (75, 95, 125), "name": "Dad's Office Desk"},
-            {"rect": (2180, 190, 250, 340), "color": (58, 66, 82), "name": "Main Town Power Generator"},
+            {"rect": (1850, 200, 220, 65), "color": (92, 82, 68), "name": "Chancery Pneumatic Desk"},
+            {"rect": (1850, 420, 200, 80), "color": (78, 68, 58), "name": "Lord Architect's Drafting Desk"},
+            {"rect": (2180, 190, 250, 340), "color": (64, 58, 54), "name": "Central Steam-Boiler & Pumping Engine"},
         ],
     },
     {
         "id": "school",
-        "name": "MAPLEWOOD HIGH SCHOOL",
+        "name": "ST. DUNSTAN'S POLYTECHNIC",
         "rect": (120, 1020, 660, 660),
-        "floor_color": (205, 215, 222),
-        "roof_color": (75, 140, 195),
+        "floor_color": (186, 182, 172),
+        "roof_color": (68, 104, 128),
         "door_x": 450,
         "door_y": 1020,
         "furniture": [
-            {"rect": (160, 1120, 240, 110), "color": (75, 135, 150), "name": "Science Lab Bench"},
-            {"rect": (480, 1120, 240, 110), "color": (155, 125, 90), "name": "Main Classroom"},
-            {"rect": (200, 1420, 460, 160), "color": (185, 125, 80), "name": "School Gym Court"},
+            {"rect": (160, 1120, 240, 110), "color": (68, 118, 114), "name": "Galvanic & Alchemical Bench"},
+            {"rect": (480, 1120, 240, 110), "color": (132, 98, 68), "name": "Collegiate Lecture Hall"},
+            {"rect": (200, 1420, 460, 160), "color": (158, 128, 92), "name": "School Gym Court (Fencing Yard)"},
         ],
     },
     {
         "id": "market",
-        "name": "TOWN MARKET & SHOPS",
+        "name": "GUILDHALL BAZAAR & APOTHECARY",
         "rect": (960, 1020, 660, 660),
-        "floor_color": (218, 205, 182),
-        "roof_color": (215, 145, 55),
+        "floor_color": (202, 184, 156),
+        "roof_color": (188, 124, 48),
         "door_x": 1290,
         "door_y": 1020,
         "furniture": [
-            {"rect": (1010, 1120, 230, 75), "color": (195, 130, 65), "name": "Hardware & Tools Stall"},
-            {"rect": (1320, 1120, 240, 75), "color": (215, 95, 85), "name": "Fresh Bakery Stall"},
-            {"rect": (1010, 1400, 250, 80), "color": (85, 165, 145), "name": "Pharmacy & Chemist Counter"},
+            {"rect": (1010, 1120, 230, 75), "color": (168, 112, 54), "name": "Clockwork Ironmonger Stall"},
+            {"rect": (1320, 1120, 240, 75), "color": (188, 84, 68), "name": "Crown Bakehouse & Pie Stall"},
+            {"rect": (1010, 1400, 250, 80), "color": (72, 138, 118), "name": "Apothecary & Tincture Counter"},
         ],
     },
     {
         "id": "park",
-        "name": "TOWN PARK & POLICE POST",
+        "name": "SEVERN COMMONS & CONSTABULARY",
         "rect": (1800, 1020, 680, 660),
-        "floor_color": (82, 142, 88),
-        "roof_color": (60, 145, 95),
+        "floor_color": (72, 118, 74),
+        "roof_color": (52, 108, 78),
         "door_x": 2140,
         "door_y": 1020,
         "furniture": [
-            {"rect": (1850, 1120, 240, 95), "color": (55, 85, 145), "name": "Police Station Desk"},
-            {"rect": (2160, 1300, 180, 180), "color": (75, 175, 230), "name": "Town Park Fountain"},
+            {"rect": (1850, 1120, 240, 95), "color": (52, 68, 108), "name": "Scotland Yard Constabulary Desk"},
+            {"rect": (2160, 1300, 180, 180), "color": (68, 148, 188), "name": "Medieval Gargoyle Fountain"},
         ],
     },
 ]
 
-# Interactive Objects in the Buildings (Placed on accessible front edges for smooth tile interaction)
+# Alias SECTORS for nav_pathing compatibility
+SECTORS = BUILDINGS
+
+# Interactive Steampunk Stations & World Objects
 WORLD_OBJECTS = [
     {
         "id": "study_notebook",
-        "name": "Family Research Terminal (Study Desk)",
+        "name": "Ashford Brass Orrery & Chronometer Log",
         "building": "home",
         "x": 250,
         "y": 602,
-        "color": (255, 215, 75),
-        "desc": "Cross-references family notes on the 5:00 PM - 6:00 PM Aether-Core anomaly.",
+        "color": (242, 198, 82),
+        "desc": "Cross-references family behavioral habits, coal-gas dampers, and the 7-Day Fate Web.",
     },
     {
         "id": "cafe_counter",
-        "name": "Sunrise Cafe Espresso Counter",
+        "name": "Brass Kettle Darjeeling & Pie Counter",
         "building": "cafe",
         "x": 1200,
         "y": 272,
-        "color": (255, 140, 175),
-        "desc": "Pick up a Warm Espresso (+15 Rapport with townspeople when you talk to them!).",
+        "color": (235, 145, 115),
+        "desc": "Pour a Cup of Earl Grey (+18 Rapport / calms nerves) or inspect today's plated meals & teacups.",
     },
     {
         "id": "school_lab_table",
-        "name": "High School Science Scanner",
+        "name": "St. Dunstan's Galvanic & Alchemical Analyzer",
         "building": "school",
         "x": 280,
         "y": 1248,
-        "color": (80, 235, 195),
-        "desc": "Analyzes physical/chemical residue & transmits calibration data to the Town Office computer!",
+        "color": (92, 228, 188),
+        "desc": "Synthesizes antidotes, tests chemical/metallurgical traces, and tests grounding switches.",
     },
     {
         "id": "market_ledger",
-        "name": "Market Hardware & Chemical Register",
+        "name": "Guildhall Ironmonger & Apothecary Ledger",
         "building": "market",
         "x": 1125,
         "y": 1212,
-        "color": (255, 200, 75),
-        "desc": "Logs afternoon tool/chemical purchases and flags suspicious serial numbers for Police Dispatch.",
+        "color": (238, 188, 72),
+        "desc": "Audits clockwork parts, steam-carriage brake pins, and apothecary tincture bottles.",
     },
     {
         "id": "office_records",
-        "name": "Office Security Mainframe",
+        "name": "Ministry Difference Engine & Valve Manifold",
         "building": "office",
         "x": 1950,
         "y": 282,
-        "color": (90, 205, 255),
-        "desc": "Compiles the emergency Generator Shutdown Code once School Lab & Market data are synced.",
+        "color": (105, 205, 245),
+        "desc": "Regulates borough steam-pressure lines, masonry stress logs, and emergency valve overrides.",
     },
     {
         "id": "police_dispatch",
-        "name": "Police Evidence & Dispatch Terminal",
+        "name": "Scotland Yard Telegraph & Warrant Desk",
         "building": "park",
         "x": 1970,
         "y": 1232,
         "color": (95, 165, 255),
-        "desc": "Logs sabotage evidence with Chief Miller and radios Guard Hank at the Power Room.",
+        "desc": "Files verified hazard dispatches, cancels forged warrants, and stations Constables on patrol.",
     },
     {
         "id": "power_generator",
-        "name": "Main Town Power Generator Console",
+        "name": "Central Steam-Boiler & Clocktower Regulator",
         "building": "office",
         "x": 2305,
         "y": 542,
-        "color": (255, 90, 85),
-        "desc": "The Aether-Core Control Console! Requires Police Clearance and the Shutdown Code to disarm.",
+        "color": (238, 88, 82),
+        "desc": "The beating industrial heart of Dunwick-on-Severn! Regulates central steam pressure & town clockwork gears.",
     },
 ]
 
 # ==============================================================================
-# STARTING LORE & CHARACTER PROLOGUES (Displayed after Character Selection)
+# STARTING LORE & PROTAGONIST PROLOGUES (Medieval-Steampunk 1924 Britain)
 # ==============================================================================
 TOWN_LORE_PROLOGUE = [
-    "THE ANOMALY OF MAPLEWOOD HEIGHTS (5:00 PM - 6:00 PM):",
-    "Beneath the quiet streets of Maplewood Heights hums the experimental Aether-Core Generator—",
-    "a high-output municipal reactor housed inside the Town Office Power Room.",
+    "DUNWICK-ON-SEVERN, ANNO DOMINI 1924 — THE CLOCKWORK BOROUGH:",
+    "Built atop a 14th-century Norman abbey and walled market square, the British borough of",
+    "Dunwick-on-Severn hums with 1920s brass steam-carriages, pneumatic telegraphs, and the",
+    "towering Central Steam-Boiler beneath the Clocktower Foundry.",
     "",
-    "Today at 5:00 PM, the afternoon bells rang across Main Street. Exactly sixty minutes later,",
-    "at 6:00 PM, someone secretly sabotaged the Aether-Core. Instead of merely blacking out the",
-    "town, the overloaded core fractured local spacetime—rewinding every street, vehicle, and",
-    "resident back to 5:00 PM sharp.",
+    "Last night, as the Clocktower struck the seventh bell, a violent crimson fissure tore across",
+    "the sky—and you awoke back on MONDAY MORNING. Whether Fate has decreed the end of the world,",
+    "your own demise, or the death of someone you love, one terrifying law governs this loop:",
     "",
-    "Only the four members of the Mercer Family—connected by Arthur's home diagnostic receiver",
-    "and Maya's temporal resonance coil—retain their awareness across loops. Everyone else in town",
-    "is living out their normal 5:00 PM to 6:00 PM routine, completely unaware that the world",
-    "ends at the top of the hour.",
+    "ONLY YOU REMEMBER. Even the other three members of your own family are completely unaware.",
+    "And Fate is relentless: every time you foil one catastrophe, the Butterfly Effect twists your",
+    "intervention into a new lethal hazard the next day. Survive all 7 Days (Monday–Sunday) to win!",
 ]
 
 FAMILY_LORE_PROLOGUES = {
     "arthur": {
-        "headline": "ARTHUR MERCER (DAD) — THE ARCHITECT'S BURDEN",
+        "headline": "LORD ARTHUR MERCER-ASHFORD (FATHER) — CHIEF CLOCKWORK ARCHITECT",
         "story": (
-            "You helped design the Aether-Core's safety interlocks three years ago, though Director Vance "
-            "overruled your warnings about manual bypass relays. When the 6:00 PM flash consumed the sky, "
-            "you woke up standing in your living room at 5:00 PM with the blueprint hum still ringing in "
-            "your ears. Office staff, engineers, and Police Chief Miller respect your authority—use that "
-            "access to uncover who is tampering with your life's work."
+            "As Senior Fellow of the Royal Mint Foundry, you designed Dunwick's pressurized brass manifolds "
+            "and steam-lock regulators. Nobody else in Ashford Manor knows why you woke up drenched in cold "
+            "sweat with a vision of impending ruin. Ministry officials, engineers, and Chief Inspector Miller "
+            "respect your rank—use your mechanical mastery and quiet dignity to outmaneuver Fate."
         ),
-        "specialty": "Official Authority: +20 Starting Rapport with Town Office staff, Engineers, and Police.",
+        "specialty": "Ministry Authority & Mechanical Mastery: +20 Rapport with Chancery, Engineers & Police; can override steam-manifolds directly.",
     },
     "elena": {
-        "headline": "ELENA MERCER (MOM) — THE REPORTER'S INSTINCT",
+        "headline": "LADY ELENA MERCER-ASHFORD (MOTHER) — FLEET STREET INVESTIGATOR",
         "story": (
-            "As lead investigative journalist for the Maplewood Gazette, you spent the past week tracking "
-            "rumors of off-the-books shipments arriving at the Town Market. Seconds before the 6:00 PM "
-            "detonation, you glimpsed a shadowy figure slipping out of the Town Office alley. Shopkeepers, "
-            "waitstaff, and cafe regulars trust you—if someone saw an unusual face or sold a restricted component "
-            "this afternoon, they will tell you first."
+            "A seasoned investigative columnist for the Dunwick Chronicle, you possess an uncanny eye for "
+            "human micro-expressions, nervous habits, and whispered rumors in the Brass Kettle Teahouse. "
+            "You alone carry the burden of the temporal vision. Because townsfolk confide their daily "
+            "troubles in you, you can subtly redirect their routines before Fate's trap snaps shut."
         ),
-        "specialty": "Press Rapport: +20 Starting Rapport with Sunrise Cafe & Town Market residents.",
+        "specialty": "Human Insight & Social Persuasion: +20 Rapport at Teahouse & Bazaar; uncovers hidden human behavioral tells on the first ask.",
     },
     "maya": {
-        "headline": "MAYA MERCER (SISTER, 17) — THE SCIENCE PRODIGY",
+        "headline": "MAYA MERCER-ASHFORD (ELDEST DAUGHTER, 17) — ALCHEMICAL PRODIGY",
         "story": (
-            "You were calibrating your robotics frequency scanner in the Maplewood High Science Lab when "
-            "the 6:00 PM shockwave hit. Your homemade coil absorbed a fraction of the chronos pulse, "
-            "anchoring our entire family's memories across time loops! You can operate the High School "
-            "Science Scanner to analyze chemical/electronic traces and synthesize extra Deja-Vu pulses."
+            "While calibrating an electrical induction coil at St. Dunstan's Polytechnic, your mind was seared with "
+            "a vision of the week's tragedy. Neither your parents nor little Leo suspect a thing. You can "
+            "detect chemical poisons, neutralize electrical surges, and analyze mechanical stress at the "
+            "Polytechnic Lab—though pompous officials will dismiss you unless you bring irrefutable proof."
         ),
-        "specialty": "Lab Mastery: Instant Science Scanner calibration & +20 Rapport with School/Tech peers.",
+        "specialty": "Alchemical & Electrical Genius: Instant Lab synthesis, poison/metallurgy detection & +20 Rapport with Scholars/Chemists.",
     },
     "leo": {
-        "headline": "LEO MERCER (BROTHER, 11) — THE STREET SCOUT",
+        "headline": "LEO MERCER-ASHFORD (YOUNGEST SON, 11) — COBBLESTONE SCOUT",
         "story": (
-            "Nobody pays attention to an eleven-year-old kid on sneakers—and that is your biggest weapon. "
-            "You were racing Toby near the schoolyard when the sky turned violet at 6:00 PM. You move 25% "
-            "faster than any adult in Maplewood, making you the best choice for shadowing suspects as they "
-            "walk between the Market, the Cafe, and the Power Room before 6:00 PM."
+            "In 1924 Dunwick, grown-ups rarely notice an eleven-year-old boy in a flat cap darting past "
+            "steam-lorries and market barrels. You alone saw the vision of doom! Because no adult will "
+            "believe a child's dire warnings, you must rely on your 25% faster speed, eavesdropping on "
+            "unfiltered adult conversations, and physically tampering with hazards before they strike."
         ),
-        "specialty": "Fleet Footed: 25% Faster Movement Speed & +20 Rapport with Street/Park locals.",
+        "specialty": "Fleet-Footed Eavesdropper: 25% Faster Speed, overhears unguarded adult secrets & slips past mechanical hazards.",
     },
 }
 
 # ==============================================================================
-# 24 NAMED CHARACTERS (4 Playable Family Members + 20 Lively Town NPCs!)
+# 24 NAMED CHARACTERS (4 Ashford-Mercer Family + 20 1920s British Borough NPCs)
 # ==============================================================================
 CHARACTER_SPECS = [
-    # --- PLAYABLE FAMILY OF 4 ---
+    # --- THE 4 ASHFORD-MERCER FAMILY MEMBERS (Only the chosen one knows!) ---
     {
         "id": "arthur",
-        "name": "Arthur Mercer (Dad)",
-        "role": "Playable Dad — Systems Architect",
+        "name": "Lord Arthur (Father)",
+        "role": "Chief Clockwork Architect",
         "is_family": True,
         "building": "home",
         "x": 380,
         "y": 340,
-        "shirt": (65, 135, 225),
-        "pants": (40, 52, 75),
-        "hair": (75, 52, 38),
+        "shirt": (58, 98, 152),
+        "pants": (38, 44, 58),
+        "hair": (72, 50, 36),
         "skin": (245, 212, 188),
         "accessory": "glasses_tie",
         "scale": 1.05,
-        "perk": "Respected by Police & Office Staff; knows the Town Office layout.",
-        "bio": "Loving father of Maya & Leo. Works at the Town Office.",
+        "perk": "Commands Ministry & Police respect; masters steam & clockwork mechanisms.",
+        "bio": "Distinguished 1920s clockwork architect. Habits: Takes afternoon Darjeeling and inspects the Foundry gauges.",
     },
     {
         "id": "elena",
-        "name": "Elena Mercer (Mom)",
-        "role": "Playable Mom — Town Reporter",
+        "name": "Lady Elena (Mother)",
+        "role": "Chronicle Investigative Writer",
         "is_family": True,
         "building": "home",
         "x": 540,
         "y": 340,
-        "shirt": (225, 95, 145),
-        "pants": (65, 48, 72),
-        "hair": (125, 55, 35),
+        "shirt": (178, 68, 98),
+        "pants": (58, 44, 62),
+        "hair": (122, 52, 34),
         "skin": (248, 216, 192),
         "accessory": "scarf",
         "scale": 1.0,
-        "perk": "Everyone in town trusts her; people share secrets on the first ask!",
-        "bio": "Investigative reporter for the Maplewood Gazette and devoted mom.",
+        "perk": "Reads human behavioral tells & persuades townsfolk to alter their daily routines.",
+        "bio": "Sharp-witted Fleet Street journalist. Habits: Interviews patrons at the Brass Kettle and browses the Bazaar.",
     },
     {
         "id": "maya",
-        "name": "Maya Mercer (Sister, 17)",
-        "role": "Playable Sister — High School Whiz",
+        "name": "Maya (Sister, 17)",
+        "role": "St. Dunstan's Alchemical Scholar",
         "is_family": True,
         "building": "school",
         "x": 340,
         "y": 1310,
-        "shirt": (55, 205, 185),
-        "pants": (45, 62, 85),
+        "shirt": (52, 158, 148),
+        "pants": (42, 54, 72),
         "hair": (42, 34, 52),
         "skin": (245, 212, 188),
         "accessory": "headphones",
         "scale": 0.95,
-        "perk": "Can analyze clues at the School Science Lab & craft Deja-Vu charges!",
-        "bio": "17-year-old science & robotics star at Maplewood High.",
+        "perk": "Analyzes poisons, metallurgy & galvanic surges; crafts Aether-Tuning charges.",
+        "bio": "Brilliant 17-year-old alchemical & galvanic scholar. Habits: Experiments in St. Dunstan's Lab with Chloe.",
     },
     {
         "id": "leo",
-        "name": "Leo Mercer (Brother, 11)",
-        "role": "Playable Brother — Fast Kid Scout",
+        "name": "Leo (Brother, 11)",
+        "role": "Cobblestone Urchin & Scout",
         "is_family": True,
         "building": "school",
         "x": 520,
         "y": 1480,
-        "shirt": (95, 210, 110),
-        "pants": (52, 75, 95),
+        "shirt": (88, 158, 82),
+        "pants": (52, 66, 82),
         "hair": (95, 65, 42),
         "skin": (245, 212, 188),
         "accessory": "cap",
         "scale": 0.82,
-        "perk": "Runs 25% faster than everyone else & overhears clues kids notice!",
-        "bio": "Energetic 11-year-old brother who knows every shortcut in town.",
+        "perk": "Runs 25% faster, eavesdrops on unguarded adults & spots street-level traps.",
+        "bio": "Quick-footed 11-year-old brother in a tweed flat cap. Habits: Races along High Street and the Gargoyle Fountain.",
     },
-    # --- 20 LIVELY NEIGHBORHOOD NPCS ---
-    # Cafe & Parlor NPCs (4)
+    # --- 20 LIVELY 1920s BRITISH BOROUGH NPCS ---
     {
         "id": "sal",
-        "name": "Barista Sal",
-        "role": "Owner of Sunrise Cafe",
+        "name": "Proprietor Sal",
+        "role": "Master of The Brass Kettle Teahouse",
         "is_family": False,
         "building": "cafe",
         "x": 1150,
         "y": 310,
-        "shirt": (235, 155, 75),
-        "pants": (75, 55, 42),
+        "shirt": (188, 118, 58),
+        "pants": (68, 50, 38),
         "hair": (55, 42, 35),
         "skin": (235, 198, 172),
         "accessory": "apron",
         "scale": 1.02,
-        "bio": "Serves coffee to the whole town and hears every rumor.",
+        "bio": "Brews Darjeeling and spiced espresso from a pressurized copper urn; hears every whisper in Dunwick.",
     },
     {
         "id": "mia",
-        "name": "Waitress Mia",
-        "role": "Cafe Server",
+        "name": "Parlourmaid Mia",
+        "role": "Teahouse Server",
         "is_family": False,
         "building": "cafe",
         "x": 1255,
         "y": 435,
-        "shirt": (245, 135, 165),
-        "pants": (60, 50, 68),
+        "shirt": (212, 112, 138),
+        "pants": (56, 46, 62),
         "hair": (215, 165, 75),
         "skin": (248, 218, 195),
         "accessory": "apron",
         "scale": 0.96,
-        "bio": "Saw a nervous customer drop a strange note near Table 2.",
+        "bio": "Attentive server who notices who tampers with teacups, who eats too quickly, and who loiters by the window.",
     },
     {
         "id": "jenkins",
-        "name": "Old Man Jenkins",
-        "role": "Retired Watchmaker",
+        "name": "Horologist Jenkins",
+        "role": "Retired Guild Watchmaker",
         "is_family": False,
         "building": "cafe",
         "x": 1060,
         "y": 510,
-        "shirt": (145, 135, 115),
-        "pants": (70, 68, 62),
+        "shirt": (132, 118, 98),
+        "pants": (66, 62, 56),
         "hair": (210, 212, 218),
         "skin": (238, 205, 182),
         "accessory": "glasses_tie",
         "scale": 0.98,
-        "bio": "Watches the street all afternoon from his favorite cafe table.",
+        "bio": "Adjusts his brass pocket-chronometer by the Teahouse window and logs every steam-carriage on High Street.",
     },
     {
         "id": "mayor",
-        "name": "Mayor Thornton",
-        "role": "Mayor of Maplewood",
+        "name": "Lord Mayor Thornton",
+        "role": "Lord Mayor of Dunwick-on-Severn",
         "is_family": False,
         "building": "cafe",
         "x": 1490,
         "y": 340,
-        "shirt": (155, 95, 215),
-        "pants": (48, 42, 65),
+        "shirt": (135, 78, 168),
+        "pants": (46, 40, 58),
         "hair": (185, 185, 195),
         "skin": (242, 208, 185),
         "accessory": "glasses_tie",
         "scale": 1.05,
-        "bio": "Can order the Police and Town Office to open the Power Room.",
+        "bio": "Pompous Edwardian magistrate who values decorum and official seals above all else.",
     },
-    # Market & Shops NPCs (4)
     {
         "id": "sam",
-        "name": "Shopkeeper Sam",
-        "role": "Hardware Store Owner",
+        "name": "Ironmonger Sam",
+        "role": "Guildhall Brass & Toolsmith",
         "is_family": False,
         "building": "market",
         "x": 1120,
         "y": 1270,
-        "shirt": (215, 145, 65),
-        "pants": (65, 75, 95),
+        "shirt": (185, 122, 52),
+        "pants": (58, 66, 82),
         "hair": (85, 55, 38),
         "skin": (225, 185, 155),
         "accessory": "cap",
         "scale": 1.03,
-        "bio": "Keeps the sales register of everyone who bought tools today.",
+        "bio": "Forges brass valves, brake cotter-pins, and clockwork spanners at the Guildhall Bazaar.",
     },
     {
         "id": "martha",
-        "name": "Baker Martha",
-        "role": "Market Pastry Chef",
+        "name": "Mistress Martha",
+        "role": "Crown Bakehouse Matron",
         "is_family": False,
         "building": "market",
         "x": 1440,
         "y": 1260,
-        "shirt": (235, 115, 95),
-        "pants": (85, 60, 55),
+        "shirt": (205, 98, 78),
+        "pants": (78, 56, 50),
         "hair": (165, 95, 65),
         "skin": (245, 212, 188),
         "accessory": "apron",
         "scale": 1.0,
-        "bio": "Friendly baker who knows all the families in Maplewood.",
+        "bio": "Bakes thick-crusted mutton pies, plum tarts, and crumpets for the Teahouse and Bazaar.",
     },
     {
         "id": "lin",
-        "name": "Pharmacist Lin",
-        "role": "Town Chemist",
+        "name": "Apothecary Lin",
+        "role": "Master of Tinctures & Remedies",
         "is_family": False,
         "building": "market",
         "x": 1140,
         "y": 1520,
-        "shirt": (75, 195, 175),
-        "pants": (50, 65, 75),
+        "shirt": (62, 158, 142),
+        "pants": (48, 60, 68),
         "hair": (35, 35, 42),
         "skin": (245, 218, 195),
         "accessory": "glasses_tie",
         "scale": 0.98,
-        "bio": "Noticed someone ordering industrial cooling acid this afternoon.",
+        "bio": "Compounds laudanum, smelling salts, and belladonna tinctures; keeps a strict poison register.",
     },
     {
         "id": "zack",
-        "name": "Courier Zack",
-        "role": "Express Delivery Driver",
+        "name": "Steam-Driver Zack",
+        "role": "Royal Parcel & Lorry Driver",
         "is_family": False,
         "building": "market",
         "x": 1460,
         "y": 1500,
-        "shirt": (95, 175, 235),
-        "pants": (55, 62, 78),
+        "shirt": (78, 138, 188),
+        "pants": (52, 58, 72),
         "hair": (110, 75, 45),
         "skin": (238, 205, 180),
         "accessory": "cap",
         "scale": 1.0,
-        "bio": "Delivers crates between the Market and the Town Office.",
+        "bio": "Hauls pressurized coal-cylinders and heavy crates along High Street in his brass steam-lorry.",
     },
-    # High School NPCs (4)
     {
         "id": "clarke",
-        "name": "Mr. Clarke",
-        "role": "High School Science Teacher",
+        "name": "Professor Clarke",
+        "role": "Chair of Natural Philosophy",
         "is_family": False,
         "building": "school",
         "x": 240,
         "y": 1290,
-        "shirt": (75, 175, 195),
-        "pants": (55, 60, 72),
+        "shirt": (68, 142, 162),
+        "pants": (52, 56, 68),
         "hair": (95, 72, 55),
         "skin": (242, 210, 185),
         "accessory": "glasses_tie",
         "scale": 1.04,
-        "bio": "Helps Maya and Leo run tests on the Science Lab Scanner.",
+        "bio": "Oversees St. Dunstan's Galvanic & Alchemical Lab; mentor to Maya.",
     },
     {
         "id": "higgins",
-        "name": "Principal Higgins",
-        "role": "High School Principal",
+        "name": "Headmaster Higgins",
+        "role": "Provost of St. Dunstan's",
         "is_family": False,
         "building": "school",
         "x": 580,
         "y": 1280,
-        "shirt": (125, 95, 165),
-        "pants": (48, 45, 62),
+        "shirt": (108, 82, 142),
+        "pants": (46, 42, 58),
         "hair": (155, 155, 165),
         "skin": (238, 202, 178),
         "accessory": "glasses_tie",
         "scale": 1.05,
-        "bio": "Keeps strict order at Maplewood High.",
+        "bio": "Strict traditionalist who guards the ancient medieval abbey vaults beneath the Polytechnic.",
     },
     {
         "id": "chloe",
-        "name": "Chloe (Student)",
-        "role": "Maya's Best Friend",
+        "name": "Chloe Sterling",
+        "role": "Apprentice Alchemist (Maya's Friend)",
         "is_family": False,
         "building": "school",
         "x": 420,
         "y": 1350,
-        "shirt": (235, 130, 195),
-        "pants": (55, 68, 95),
+        "shirt": (198, 108, 158),
+        "pants": (52, 62, 86),
         "hair": (225, 175, 85),
         "skin": (248, 218, 195),
         "accessory": "headphones",
         "scale": 0.94,
-        "bio": "Studies robotics with Maya and saw someone near the power shed.",
+        "bio": "Maya's dearest friend; often rushes between the Galvanic Lab, the Bakehouse, and the Teahouse.",
     },
     {
         "id": "toby",
-        "name": "Toby (Kid Student)",
-        "role": "Leo's Classmate",
+        "name": "Toby Finch",
+        "role": "Choirboy & Street Runner (Leo's Friend)",
         "is_family": False,
         "building": "school",
         "x": 320,
         "y": 1520,
-        "shirt": (245, 165, 65),
-        "pants": (55, 72, 92),
+        "shirt": (215, 142, 58),
+        "pants": (52, 66, 84),
         "hair": (85, 55, 38),
         "skin": (242, 210, 185),
         "accessory": "cap",
         "scale": 0.82,
-        "bio": "Plays basketball with Leo and trades neighborhood clues.",
+        "bio": "Leo's best mate; climbs scaffolding and spots rooftop figures or loose gargoyle stones.",
     },
-    # Town Office & Power Room NPCs (4)
     {
         "id": "vance",
-        "name": "Director Vance",
-        "role": "Dad's Boss at Town Office",
+        "name": "Lord Director Vance",
+        "role": "Controller of the Borough Steam-Works",
         "is_family": False,
         "building": "office",
         "x": 1960,
         "y": 480,
-        "shirt": (185, 95, 235),
-        "pants": (45, 38, 62),
+        "shirt": (148, 78, 188),
+        "pants": (42, 36, 56),
         "hair": (55, 48, 65),
         "skin": (242, 208, 185),
         "accessory": "glasses_tie",
         "scale": 1.05,
-        "bio": "Refuses to shut off the 6:00 PM Power Test until shown hard proof.",
+        "bio": "Ruthless industrialist pushing the Borough Steam-Boilers to maximum pressure for the Crown.",
     },
     {
         "id": "pam",
-        "name": "Secretary Pam",
-        "role": "Office Receptionist",
+        "name": "Clerk Pamela",
+        "role": "Chancery Cipher & Telegraphist",
         "is_family": False,
         "building": "office",
         "x": 1950,
         "y": 320,
-        "shirt": (95, 195, 225),
-        "pants": (52, 60, 78),
+        "shirt": (82, 162, 188),
+        "pants": (50, 56, 72),
         "hair": (175, 85, 65),
         "skin": (248, 218, 195),
         "accessory": "scarf",
         "scale": 0.98,
-        "bio": "Keeps the visitor log at the Town Office reception desk.",
+        "bio": "Logs every pneumatic dispatch tube and visitor passing through the Borough Chancery.",
     },
     {
         "id": "raj",
-        "name": "Engineer Raj",
-        "role": "Power Grid Technician",
+        "name": "Chief Stoker Raj",
+        "role": "Master Steam & Turbine Engineer",
         "is_family": False,
         "building": "office",
         "x": 2250,
         "y": 540,
-        "shirt": (75, 165, 235),
-        "pants": (48, 58, 75),
+        "shirt": (68, 138, 195),
+        "pants": (46, 54, 68),
         "hair": (32, 32, 38),
         "skin": (198, 152, 118),
         "accessory": "cap",
         "scale": 1.02,
-        "bio": "Monitors the Main Town Power Generator gauges.",
+        "bio": "Watches the brass pressure needles on the Borough Steam-Boiler and coal-gas mains.",
     },
     {
         "id": "hank",
-        "name": "Guard Hank",
-        "role": "Power Room Security Guard",
+        "name": "Warden Hank",
+        "role": "Foundry Iron-Gate Yeoman",
         "is_family": False,
         "building": "office",
         "x": 2140,
         "y": 360,
-        "shirt": (65, 115, 185),
-        "pants": (35, 45, 68),
+        "shirt": (58, 98, 158),
+        "pants": (34, 42, 62),
         "hair": (75, 65, 55),
         "skin": (235, 198, 175),
         "accessory": "cop_hat",
         "scale": 1.06,
-        "bio": "Guards the Main Power Generator. Only lets authorized people disarm it.",
+        "bio": "Former Royal Sapper who guards the Clocktower Boiler chamber with unwavering discipline.",
     },
-    # Park, Police & Main Street NPCs (4)
     {
         "id": "miller",
-        "name": "Chief Miller (Police)",
-        "role": "Town Police Chief",
+        "name": "Chief Inspector Miller",
+        "role": "Scotland Yard Borough Inspector",
         "is_family": False,
         "building": "park",
         "x": 1960,
         "y": 1270,
-        "shirt": (65, 135, 245),
-        "pants": (32, 48, 85),
+        "shirt": (52, 108, 198),
+        "pants": (30, 44, 78),
         "hair": (65, 55, 48),
         "skin": (238, 202, 178),
         "accessory": "cop_hat",
         "scale": 1.05,
-        "bio": "Arrests the Saboteur once you complete the investigation chapters!",
+        "bio": "Pragmatic detective who demands tangible proof; will detain anyone causing public hysteria.",
     },
     {
         "id": "rosa",
-        "name": "Officer Rosa",
-        "role": "Street Patrol Officer",
+        "name": "Constable Rosa",
+        "role": "High Street Beat Constable",
         "is_family": False,
         "building": "street",
         "x": 1290,
         "y": 880,
-        "shirt": (65, 135, 245),
-        "pants": (32, 48, 85),
+        "shirt": (52, 108, 198),
+        "pants": (30, 44, 78),
         "hair": (42, 32, 38),
         "skin": (222, 182, 152),
         "accessory": "cop_hat",
         "scale": 1.0,
-        "bio": "Patrols Main Street between the Cafe, Market, and Park.",
+        "bio": "Blows her brass whistle to halt runaway steam-carriages and keeps order on High Street.",
     },
     {
         "id": "joya",
-        "name": "Nurse Joya",
-        "role": "Park First-Aid Nurse",
+        "name": "Sister Joya",
+        "role": "Infirmary & Red Cross Matron",
         "is_family": False,
         "building": "park",
         "x": 2250,
         "y": 1520,
-        "shirt": (245, 115, 145),
-        "pants": (235, 238, 245),
+        "shirt": (218, 98, 124),
+        "pants": (232, 232, 238),
         "hair": (65, 42, 55),
         "skin": (242, 210, 185),
         "accessory": "scarf",
         "scale": 0.98,
-        "bio": "Looks after kids and families in the Town Park.",
+        "bio": "Skilled in the Heimlich maneuver, antidotes, and emergency triage by the Gargoyle Fountain.",
     },
     {
         "id": "dan",
-        "name": "Coach Dan",
-        "role": "Neighborhood Athletics Coach",
+        "name": "Sergeant-Major Dan",
+        "role": "Borough Fencing & Athletics Master",
         "is_family": False,
         "building": "street",
         "x": 680,
         "y": 880,
-        "shirt": (235, 95, 75),
-        "pants": (55, 62, 72),
+        "shirt": (198, 82, 64),
+        "pants": (52, 58, 68),
         "hair": (85, 62, 42),
         "skin": (235, 198, 172),
         "accessory": "cap",
         "scale": 1.05,
-        "bio": "Jogs along Main Street and sees everyone coming and going.",
+        "bio": "Briskly marches along High Street and spots anyone acting out of their daily rhythm.",
     },
 ]
