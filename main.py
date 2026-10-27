@@ -279,6 +279,20 @@ class MaplewoodRPGApp:
             pygame.draw.circle(glow_surf, (r, g, b, alpha), (sz * 2, sz * 2), sz)
             surface.blit(glow_surf, (int(p["x"]) - sz * 2, int(p["y"]) - sz * 2))
 
+    def _draw_flush_gothic_brackets(self, surface: pygame.Surface, rect: pygame.Rect, col: tuple[int, int, int] = (218, 172, 78), b_len: int = 12, b_thick: int = 2):
+        # Top-Left Bracket
+        pygame.draw.line(surface, col, (rect.left, rect.top), (rect.left + b_len, rect.top), b_thick)
+        pygame.draw.line(surface, col, (rect.left, rect.top), (rect.left, rect.top + b_len), b_thick)
+        # Top-Right Bracket
+        pygame.draw.line(surface, col, (rect.right - b_len, rect.top), (rect.right, rect.top), b_thick)
+        pygame.draw.line(surface, col, (rect.right, rect.top), (rect.right, rect.top + b_len), b_thick)
+        # Bottom-Left Bracket
+        pygame.draw.line(surface, col, (rect.left, rect.bottom), (rect.left + b_len, rect.bottom), b_thick)
+        pygame.draw.line(surface, col, (rect.left, rect.bottom - b_len), (rect.left, rect.bottom), b_thick)
+        # Bottom-Right Bracket
+        pygame.draw.line(surface, col, (rect.right - b_len, rect.bottom), (rect.right, rect.bottom), b_thick)
+        pygame.draw.line(surface, col, (rect.right, rect.bottom - b_len), (rect.right, rect.bottom), b_thick)
+
     def _draw_figma_card(
         self,
         rect: pygame.Rect,
@@ -310,16 +324,8 @@ class MaplewoodRPGApp:
                 pygame.draw.rect(self.screen, (138, 28, 38), inner_r, 1, border_radius=max(2, radius - 3))
 
         if corner_tabs:
-            tab_sz = 6
-            corners = [
-                (rect.left - 2, rect.top - 2),
-                (rect.right - tab_sz + 2, rect.top - 2),
-                (rect.left - 2, rect.bottom - tab_sz + 2),
-                (rect.right - tab_sz + 2, rect.bottom - tab_sz + 2),
-            ]
-            for cx, cy in corners:
-                pygame.draw.rect(self.screen, (218, 172, 78), (cx, cy, tab_sz, tab_sz))
-                pygame.draw.rect(self.screen, (34, 26, 20), (cx, cy, tab_sz, tab_sz), 1)
+            b_len = min(14, max(8, rect.width // 10), max(8, rect.height // 10))
+            self._draw_flush_gothic_brackets(self.screen, rect, col=(218, 172, 78), b_len=b_len, b_thick=2)
 
     def _draw_figma_button(
         self,
@@ -330,7 +336,7 @@ class MaplewoodRPGApp:
         hover_col: tuple[int, int, int] = (48, 24, 32),
         border_col: tuple[int, int, int] = (142, 114, 62),
         text_col: tuple[int, int, int] = (245, 240, 228),
-        radius: int = 8,
+        radius: int = 6,
         align_left: bool = False,
     ):
         mx, my = pygame.mouse.get_pos()
@@ -342,9 +348,7 @@ class MaplewoodRPGApp:
         pygame.draw.rect(self.screen, bdr_c, rect, 2 if is_hover else 1, border_radius=radius)
 
         if is_hover:
-            tab_sz = 4
-            pygame.draw.rect(self.screen, (218, 172, 78), (rect.left - 1, rect.top - 1, tab_sz, tab_sz))
-            pygame.draw.rect(self.screen, (218, 172, 78), (rect.right - tab_sz + 1, rect.top - 1, tab_sz, tab_sz))
+            self._draw_flush_gothic_brackets(self.screen, rect, col=(218, 172, 78), b_len=6, b_thick=1)
 
         # Strictly bound button text within its inner width
         max_tw = max(10, rect.width - 24)
@@ -354,9 +358,12 @@ class MaplewoodRPGApp:
                 display_label = display_label[:-1]
             display_label = display_label + "..."
 
+        # Drop shadow for text contrast
+        sh_surf = font.render(display_label, True, (6, 8, 12))
         t_surf = font.render(display_label, True, (255, 248, 235) if is_hover else text_col)
         tx = rect.x + 14 if align_left else rect.centerx - t_surf.get_width() // 2
         ty = rect.centery - t_surf.get_height() // 2
+        self.screen.blit(sh_surf, (tx + 1, ty + 1))
         self.screen.blit(t_surf, (tx, ty))
 
     def _draw_gothic_plaque(
@@ -371,77 +378,81 @@ class MaplewoodRPGApp:
         if is_active:
             # Active carved stone plaque with top bevel highlight
             p_surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-            pygame.draw.rect(p_surf, (16, 18, 26, 245), (0, 0, rect.width, rect.height), border_radius=6)
-            pygame.draw.line(p_surf, (48, 52, 68, 180), (4, 2), (rect.width - 5, 2), 1)
+            pygame.draw.rect(p_surf, (16, 18, 26, 250), (0, 0, rect.width, rect.height), border_radius=4)
+            pygame.draw.line(p_surf, (55, 60, 78, 160), (3, 2), (rect.width - 4, 2), 1)
             surface.blit(p_surf, rect.topleft)
 
-            # Double border
-            pygame.draw.rect(surface, (68, 56, 48), rect, 2, border_radius=6)
+            # Double border: weathered iron + inner silver/bronze
+            pygame.draw.rect(surface, (72, 60, 52), rect, 2, border_radius=4)
             inner_r = rect.inflate(-6, -6)
-            pygame.draw.rect(surface, (132, 118, 102), inner_r, 1, border_radius=4)
+            pygame.draw.rect(surface, (138, 122, 104), inner_r, 1, border_radius=2)
 
-            # 4 Corner bracket tabs in antique gold
-            tab_sz = 5
-            corners = [
-                (rect.left - 2, rect.top - 2),
-                (rect.right - tab_sz + 2, rect.top - 2),
-                (rect.left - 2, rect.bottom - tab_sz + 2),
-                (rect.right - tab_sz + 2, rect.bottom - tab_sz + 2),
-            ]
-            for cx, cy in corners:
-                pygame.draw.rect(surface, (218, 172, 78), (cx, cy, tab_sz, tab_sz))
-                pygame.draw.rect(surface, (54, 42, 34), (cx, cy, tab_sz, tab_sz), 1)
+            # Flushed corner brackets (perfectly anchored, ZERO loose tabs)
+            self._draw_flush_gothic_brackets(surface, rect, col=(218, 172, 78), b_len=10, b_thick=2)
 
-            # Left filigree thorn/vine curls (Image 1 style)
-            pygame.draw.lines(surface, (142, 126, 108), False, [
-                (rect.left, rect.top + 14),
-                (rect.left - 10, rect.top + 8),
-                (rect.left - 16, rect.top - 2),
-                (rect.left - 12, rect.top - 8),
+            # Left filigree thorn/vine curls anchored flush into plaque edge
+            pygame.draw.lines(surface, (138, 122, 104), False, [
+                (rect.left, rect.centery - 6),
+                (rect.left - 8, rect.top + 6),
+                (rect.left - 14, rect.top),
+                (rect.left - 10, rect.top - 6),
             ], 2)
-            pygame.draw.lines(surface, (142, 126, 108), False, [
-                (rect.left, rect.bottom - 14),
-                (rect.left - 10, rect.bottom - 8),
-                (rect.left - 16, rect.bottom + 2),
-                (rect.left - 12, rect.bottom + 8),
+            pygame.draw.lines(surface, (138, 122, 104), False, [
+                (rect.left, rect.centery + 6),
+                (rect.left - 8, rect.bottom - 6),
+                (rect.left - 14, rect.bottom),
+                (rect.left - 10, rect.bottom + 6),
             ], 2)
-            pygame.draw.circle(surface, (218, 172, 78), (rect.left - 12, rect.top - 8), 2)
-            pygame.draw.circle(surface, (218, 172, 78), (rect.left - 12, rect.bottom + 8), 2)
+            pygame.draw.circle(surface, (218, 172, 78), (rect.left - 10, rect.top - 6), 2)
+            pygame.draw.circle(surface, (218, 172, 78), (rect.left - 10, rect.bottom + 6), 2)
 
             # Right circular medallion seal with cross (✕)
-            c_x, c_y = rect.right - 24, rect.centery
-            pygame.draw.circle(surface, (14, 16, 22), (c_x, c_y), 11)
-            pygame.draw.circle(surface, (132, 118, 102), (c_x, c_y), 11, 1)
+            c_x, c_y = rect.right - 26, rect.centery
+            pygame.draw.circle(surface, (12, 14, 20), (c_x, c_y), 11)
+            pygame.draw.circle(surface, (138, 122, 104), (c_x, c_y), 11, 1)
             pygame.draw.line(surface, (218, 172, 78), (c_x - 4, c_y - 4), (c_x + 4, c_y + 4), 2)
             pygame.draw.line(surface, (218, 172, 78), (c_x + 4, c_y - 4), (c_x - 4, c_y + 4), 2)
 
-            # Active text in ivory
-            t_fg = font.render(text, True, (252, 248, 240))
-            surface.blit(t_fg, (rect.left + 26, rect.centery - t_fg.get_height() // 2))
+            # Active text in ivory with dark shadow for guaranteed contrast
+            tx = rect.left + 26
+            ty = rect.centery - font.size(text)[1] // 2
+            sh_surf = font.render(text, True, (4, 5, 8))
+            surface.blit(sh_surf, (tx + 1, ty + 1))
+            t_fg = font.render(text, True, (254, 250, 242))
+            surface.blit(t_fg, (tx, ty))
 
             if hotkey_tag:
                 hk_surf = self.font_xs.render(hotkey_tag, True, (218, 172, 78))
-                surface.blit(hk_surf, (rect.right - 62, rect.centery - hk_surf.get_height() // 2))
+                surface.blit(hk_surf, (rect.right - 68, rect.centery - hk_surf.get_height() // 2))
         else:
-            # Unselected clean gothic text
-            t_fg = font.render(text, True, (172, 166, 156))
-            surface.blit(t_fg, (rect.left + 26, rect.centery - t_fg.get_height() // 2))
+            # Inactive item with translucent frosted plate for guaranteed contrast
+            plate = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+            pygame.draw.rect(plate, (12, 14, 22, 115), (0, 0, rect.width, rect.height), border_radius=4)
+            surface.blit(plate, rect.topleft)
+
+            # Text with dark drop shadow
+            tx = rect.left + 26
+            ty = rect.centery - font.size(text)[1] // 2
+            sh_surf = font.render(text, True, (4, 5, 8))
+            surface.blit(sh_surf, (tx + 1, ty + 1))
+            t_fg = font.render(text, True, (185, 178, 168))
+            surface.blit(t_fg, (tx, ty))
 
             if hotkey_tag:
-                hk_surf = self.font_xs.render(hotkey_tag, True, (120, 114, 106))
-                surface.blit(hk_surf, (rect.right - 62, rect.centery - hk_surf.get_height() // 2))
+                hk_surf = self.font_xs.render(hotkey_tag, True, (130, 122, 112))
+                surface.blit(hk_surf, (rect.right - 68, rect.centery - hk_surf.get_height() // 2))
 
             # Subtle horizontal divider line beneath
             div_y = rect.bottom + 4
-            pygame.draw.line(surface, (54, 46, 42), (rect.left + 14, div_y), (rect.right - 14, div_y), 1)
-            pygame.draw.circle(surface, (98, 86, 78), (rect.centerx, div_y), 1)
+            pygame.draw.line(surface, (60, 50, 44), (rect.left + 14, div_y), (rect.right - 14, div_y), 1)
+            pygame.draw.circle(surface, (108, 92, 82), (rect.centerx, div_y), 1)
 
     def _draw_star_emblem(self, surface: pygame.Surface, cx: int, cy: int):
-        pygame.draw.circle(surface, (142, 28, 38, 110), (cx, cy), 14, 1)
-        pygame.draw.line(surface, (180, 140, 70), (cx - 10, cy), (cx + 10, cy), 1)
-        pygame.draw.line(surface, (180, 140, 70), (cx, cy - 10), (cx, cy + 10), 1)
-        pygame.draw.line(surface, (180, 140, 70), (cx - 6, cy - 6), (cx + 6, cy + 6), 1)
-        pygame.draw.line(surface, (180, 140, 70), (cx + 6, cy - 6), (cx - 6, cy + 6), 1)
+        pygame.draw.circle(surface, (142, 28, 38, 120), (cx, cy), 15, 1)
+        pygame.draw.line(surface, (190, 150, 75), (cx - 11, cy), (cx + 11, cy), 1)
+        pygame.draw.line(surface, (190, 150, 75), (cx, cy - 11), (cx, cy + 11), 1)
+        pygame.draw.line(surface, (190, 150, 75), (cx - 7, cy - 7), (cx + 7, cy + 7), 1)
+        pygame.draw.line(surface, (190, 150, 75), (cx + 7, cy - 7), (cx - 7, cy + 7), 1)
 
     def _render_wrapped_text(
         self,
@@ -885,8 +896,8 @@ class MaplewoodRPGApp:
         if self.active_modal == "MAIN_MENU":
             items = self._get_main_menu_items()
             for idx in range(len(items)):
-                iy = 210 + idx * 58
-                r = pygame.Rect(110, iy, 340, 50)
+                iy = 225 + idx * 62
+                r = pygame.Rect(110, iy, 350, 52)
                 if r.collidepoint(mx, my):
                     self.menu_selected_idx = idx
                     self._activate_main_menu_choice(idx)
@@ -1599,7 +1610,7 @@ class MaplewoodRPGApp:
         ]
 
     def _render_main_menu(self):
-        # 1. Background Surface (Dunwick Market Square or Blood Moon Eclipse)
+        # 1. Fullscreen Background Surface (Image 2 covers the entire screen)
         active_bg_key = self.settings.get("menu_background", "DUNWICK_MARKET")
         bg_surf = self.menu_bgs.get(active_bg_key) or self.menu_bgs.get("BLOOD_MOON_ECLIPSE")
         if bg_surf:
@@ -1607,67 +1618,88 @@ class MaplewoodRPGApp:
         else:
             self.screen.fill((10, 11, 15))
 
-        # 2. Left Atmospheric Shadow Gradient (Guarantees menu text legibility)
-        shadow = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        for x in range(int(SCREEN_WIDTH * 0.46)):
-            factor = x / (SCREEN_WIDTH * 0.46)
-            alpha = int(235 * (1.0 - factor * factor))
-            pygame.draw.line(shadow, (8, 9, 14, alpha), (x, 0), (x, SCREEN_HEIGHT))
-        self.screen.blit(shadow, (0, 0))
+        # 2. Left Atmospheric Chiaroscuro Scrim Gradient (Ensures 100% Contrast & Readability)
+        scrim = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        scrim_w = 640
+        for x in range(scrim_w):
+            factor = x / scrim_w
+            alpha = int(242 * ((1.0 - factor) ** 1.6))
+            pygame.draw.line(scrim, (8, 10, 16, alpha), (x, 0), (x, SCREEN_HEIGHT))
+        for y in range(90):
+            a = int(170 * (1.0 - y / 90.0))
+            pygame.draw.line(scrim, (6, 8, 12, a), (0, y), (SCREEN_WIDTH, y))
+            pygame.draw.line(scrim, (6, 8, 12, a), (0, SCREEN_HEIGHT - 1 - y), (SCREEN_WIDTH, SCREEN_HEIGHT - 1 - y))
+        self.screen.blit(scrim, (0, 0))
 
         # 3. Rising Crimson Ember Particles & Radial Dark Vignette
         self._render_menu_embers(self.screen)
         self._render_bloodborne_vignette(self.screen)
 
         # 4. Flanking Gothic Star Watermarks on Screen Borders (Image 1 style)
-        self._draw_star_emblem(self.screen, 36, SCREEN_HEIGHT // 2)
-        self._draw_star_emblem(self.screen, SCREEN_WIDTH - 36, SCREEN_HEIGHT // 2)
+        self._draw_star_emblem(self.screen, 38, SCREEN_HEIGHT // 2)
+        self._draw_star_emblem(self.screen, SCREEN_WIDTH - 38, SCREEN_HEIGHT // 2)
 
-        # 5. Top Branding Header (Gothic Serif)
-        hx, hy = 110, 68
+        # 5. Top Branding Header (Gothic Serif with contrast drop shadows)
+        hx, hy = 110, 80
         t_sh = self.font_gothic_title.render("CHRONICLES OF DUNWICK", True, (138, 26, 36))
-        t_fg = self.font_gothic_title.render("CHRONICLES OF DUNWICK", True, (218, 172, 78))
+        t_fg = self.font_gothic_title.render("CHRONICLES OF DUNWICK", True, (225, 178, 85))
         self.screen.blit(t_sh, (hx + 2, hy + 2))
         self.screen.blit(t_fg, (hx, hy))
 
-        sub = self.font_gothic_sm.render("DEFYING FATE  •  ANNO DOMINI 1924", True, (185, 175, 160))
-        self.screen.blit(sub, (hx, hy + 44))
+        s_sh = self.font_gothic_sm.render("DEFYING FATE  •  ANNO DOMINI 1924", True, (8, 10, 14))
+        s_fg = self.font_gothic_sm.render("DEFYING FATE  •  ANNO DOMINI 1924", True, (195, 185, 170))
+        self.screen.blit(s_sh, (hx + 1, hy + 47))
+        self.screen.blit(s_fg, (hx, hy + 46))
 
-        # Gothic ornamental divider line
-        pygame.draw.line(self.screen, (138, 26, 36), (hx, hy + 72), (hx + 380, hy + 72), 2)
-        pygame.draw.polygon(self.screen, (218, 172, 78), [(hx + 190, hy + 67), (hx + 195, hy + 72), (hx + 190, hy + 77), (hx + 185, hy + 72)])
+        # Flush gothic ornamental divider line
+        div_y = hy + 76
+        pygame.draw.line(self.screen, (138, 26, 36), (hx, div_y), (hx + 420, div_y), 2)
+        d_cx = hx + 210
+        pygame.draw.polygon(self.screen, (218, 172, 78), [(d_cx, div_y - 5), (d_cx + 6, div_y), (d_cx, div_y + 5), (d_cx - 6, div_y)])
 
-        # 6. Left Connecting Spine Line (Image 1 style)
+        # 6. Connecting Iron Spine Line (Continuous, flush with zero loose gaps)
         spine_x = 94
-        pygame.draw.line(self.screen, (72, 60, 52), (spine_x, 210), (spine_x, 570), 2)
+        pygame.draw.line(self.screen, (78, 64, 54), (spine_x, 225), (spine_x, 600), 2)
 
         # 7. Menu Options
         menu_items = self._get_main_menu_items()
         mx, my = pygame.mouse.get_pos()
 
         for idx, (label, desc, hk) in enumerate(menu_items):
-            iy = 210 + idx * 58
-            r = pygame.Rect(110, iy, 340, 50)
+            iy = 225 + idx * 62
+            r = pygame.Rect(110, iy, 350, 52)
             if r.collidepoint(mx, my):
                 self.menu_selected_idx = idx
 
             is_act = (idx == self.menu_selected_idx)
-            # Connector from spine to plaque
-            pygame.draw.line(self.screen, (72, 60, 52), (spine_x, r.centery), (r.left - 4, r.centery), 1)
+            # Connector runs flush from spine_x all the way into r.left (ZERO loose gap!)
+            pygame.draw.line(self.screen, (78, 64, 54), (spine_x, r.centery), (r.left, r.centery), 2)
+            # Joint node at spine
+            pygame.draw.polygon(self.screen, (218, 172, 78) if is_act else (100, 85, 75), [
+                (spine_x, r.centery - 3), (spine_x + 3, r.centery), (spine_x, r.centery + 3), (spine_x - 3, r.centery)
+            ])
             self._draw_gothic_plaque(self.screen, r, is_act, label, self.font_gothic_md if is_act else self.font_gothic_sm, hotkey_tag=hk)
 
-        # 8. Active Item Subtitle Ribbon (Bottom Left, Cinematic)
+        # 8. Active Item Subtitle Ribbon (with flush corner brackets and dark obsidian plate)
         sel_idx = max(0, min(len(menu_items) - 1, self.menu_selected_idx))
         active_label, active_desc, _ = menu_items[sel_idx]
-        rib_rect = pygame.Rect(110, 580, 480, 56)
+        rib_rect = pygame.Rect(110, 630, 520, 64)
         rib_surf = pygame.Surface((rib_rect.width, rib_rect.height), pygame.SRCALPHA)
-        pygame.draw.rect(rib_surf, (12, 14, 20, 215), (0, 0, rib_rect.width, rib_rect.height), border_radius=8)
+        pygame.draw.rect(rib_surf, (12, 14, 20, 240), (0, 0, rib_rect.width, rib_rect.height), border_radius=4)
         self.screen.blit(rib_surf, rib_rect.topleft)
-        pygame.draw.rect(self.screen, (74, 58, 48), rib_rect, 1, border_radius=8)
+        pygame.draw.rect(self.screen, (72, 60, 52), rib_rect, 1, border_radius=4)
+        self._draw_flush_gothic_brackets(self.screen, rib_rect, col=(218, 172, 78), b_len=8, b_thick=1)
 
-        self.screen.blit(self.font_gothic_sm.render(active_desc, True, (218, 172, 78)), (rib_rect.x + 16, rib_rect.y + 9))
-        prompt_txt = "[ENTER] or Click to Select  •  [B] Toggle Background  •  [F11] Fullscreen"
-        self.screen.blit(self.font_xs.render(prompt_txt, True, (168, 160, 150)), (rib_rect.x + 16, rib_rect.y + 32))
+        sh_d = self.font_gothic_sm.render(active_desc, True, (6, 8, 12))
+        fg_d = self.font_gothic_sm.render(active_desc, True, (225, 178, 85))
+        self.screen.blit(sh_d, (rib_rect.x + 19, rib_rect.y + 13))
+        self.screen.blit(fg_d, (rib_rect.x + 18, rib_rect.y + 12))
+
+        prompt_txt = "[ENTER] / Click to Select  •  [B] Toggle Background  •  [F11] Fullscreen"
+        sh_p = self.font_xs.render(prompt_txt, True, (6, 8, 12))
+        fg_p = self.font_xs.render(prompt_txt, True, (178, 170, 160))
+        self.screen.blit(sh_p, (rib_rect.x + 19, rib_rect.y + 37))
+        self.screen.blit(fg_p, (rib_rect.x + 18, rib_rect.y + 36))
 
     def _render_settings_row(self, x: int, y: int, width: int, title: str, description: str, options: list[tuple[str, bool]]):
         self.screen.blit(self.font_md.render(title, True, (218, 172, 78)), (x, y + 2))
